@@ -273,6 +273,20 @@ CORS_ALLOW_HEADERS = [
     'x-school-code',  # Header personnalisé pour le multi-tenant
 ]
 
+# CSRF Settings - Required for Django Admin in production
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:3000,http://localhost:8081',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
+# Si ALLOWED_HOSTS contient *, ajouter automatiquement les origines CSRF basées sur ALLOWED_HOSTS
+if '*' in ALLOWED_HOSTS or any('railway.app' in host for host in ALLOWED_HOSTS):
+    # En production Railway, permettre toutes les origines Railway
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://*.up.railway.app',
+        'https://*.railway.app',
+    ])
+
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
