@@ -7,7 +7,7 @@ interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (username: string, password: string) => Promise<User>
   logout: () => void
   setUser: (user: User) => void
   checkAuth: () => Promise<void>
@@ -20,7 +20,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       
-      login: async (username: string, password: string) => {
+      login: async (username: string, password: string): Promise<User> => {
         set({ isLoading: true })
         try {
           const response = await api.post('/auth/login/', { username, password })
@@ -33,11 +33,12 @@ export const useAuthStore = create<AuthState>()(
           const userResponse = await api.get('/auth/users/me/')
           const user = userResponse.data
           
-          if (user.school?.code) {
+          if (user?.school?.code) {
             localStorage.setItem('school_code', user.school.code)
           }
           
           set({ user, isAuthenticated: true, isLoading: false })
+          return user
         } catch (error) {
           set({ isLoading: false })
           throw error

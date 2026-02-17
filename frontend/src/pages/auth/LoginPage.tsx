@@ -30,20 +30,21 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true)
     try {
-      await login(data.username, data.password)
-      const user = useAuthStore.getState().user
+      const user = await login(data.username, data.password)
       
-      // Redirect based on role
+      // Redirect based on role (utiliser le user retourné directement)
       const roleRoutes: Record<string, string> = {
         ADMIN: '/admin',
         TEACHER: '/teacher',
         PARENT: '/parent',
         STUDENT: '/student',
+        ACCOUNTANT: '/accountant',
+        DISCIPLINE_OFFICER: '/discipline-officer',
       }
       
       const redirectPath = roleRoutes[user?.role || ''] || '/admin'
-      navigate(redirectPath)
       showSuccessToast('Connexion réussie')
+      navigate(redirectPath, { replace: true })
     } catch (error: any) {
       // Gérer les erreurs spécifiques de connexion
       const errorData = error.response?.data
