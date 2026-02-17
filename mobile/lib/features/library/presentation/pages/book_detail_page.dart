@@ -1,0 +1,216 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
+import '../../../../core/network/api_service.dart';
+import '../../../../core/database/database_service.dart';
+
+class BookDetailPage extends ConsumerStatefulWidget {
+  final int bookId;
+
+  const BookDetailPage({super.key, required this.bookId});
+
+  @override
+  ConsumerState<BookDetailPage> createState() => _BookDetailPageState();
+}
+
+class _BookDetailPageState extends ConsumerState<BookDetailPage> {
+  Map<String, dynamic>? _book;
+  bool _isLoading = true;
+  bool _isDownloaded = false;
+  bool _isDownloading = false;
+  double _progress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBook();
+    _checkDownloadStatus();
+  }
+
+  Future<void> _loadBook() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await ApiService().get('/library/books/${widget.bookId}/');
+      setState(() {
+        _book = response.data as Map<String, dynamic>;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _checkDownloadStatus() async {
+    final db = DatabaseService.database;
+    final result = await db.query(
+      'library_books',
+      where: 'book_id = ?',
+      whereArgs: [widget.bookId],
+    );
+
+    setState(() {
+      _isDownloaded = result.isNotEmpty && result.first['is_downloaded'] == 1;
+    });
+  }
+
+  Future<void> _downloadBook() async {
+    if (_book == null) return;
+
+    final status = await Permission.storage.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permission de stockage requise')),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isDownloading = true;
+      _progress = 0.0;
+    });
+
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final downloadDir = Directory('${appDir.path}/downloads/books');
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+
+      // TODO: Implémenter le téléchargement réel avec progression
+      // Simuler pour l'instant
+      await Future.delayed(const Duration(seconds: 2));
+
+      final db = DatabaseService.database;
+      await db.insert('library_books', {
+        'book_id': widget.bookId,
+        'title': _book!['title'],
+        'author': _book!['author'],
+        'description': _book!['description'],
+        'cover_url': _book!['cover_url'],
+        'file_path': downloadDir.path,
+        'is_downloaded': 1,
+        'progress': 0.0,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      });
+
+      setState(() {
+        _isDownloaded = true;
+        _isDownloading = false;
+        _progress = 1.0;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Livre téléchargé avec succès')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isDownloading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Détails du livre')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_book == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Détails du livre')),
+        body: const Center(child: Text('Livre non trouvé')),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_book!['title'] ?? 'Livre'),
+        actions: [
+          if (_isDownloading)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  value: _progress,
+                  strokeWidth: 2,
+                ),
+              ),
+            )
+          else
+            IconButton(
+              icon: Icon(_isDownloaded ? Icons.check_circle : Icons.download),
+              onPressed: _isDownloaded ? null : _downloadBook,
+            ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (_book!['cover_url'] != null)
+              Center(
+                child: Image.network(
+                  _book!['cover_url'],
+                  height: 300,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            const SizedBox(height: 16),
+            Text(
+              _book!['title'] ?? 'Sans titre',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            if (_book!['author'] != null)
+              Text(
+                'Par ${_book!['author']}',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            const SizedBox(height: 16),
+            if (_book!['description'] != null)
+              Text(
+                _book!['description'],
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            const SizedBox(height: 24),
+            if (_isDownloaded)
+              ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Ouvrir le livre
+                },
+                icon: const Icon(Icons.book),
+                label: const Text('Lire le livre'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
