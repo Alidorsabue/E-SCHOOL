@@ -282,10 +282,20 @@ CSRF_TRUSTED_ORIGINS = config(
 # Si ALLOWED_HOSTS contient *, ajouter automatiquement les origines CSRF basées sur ALLOWED_HOSTS
 if '*' in ALLOWED_HOSTS or any('railway.app' in host for host in ALLOWED_HOSTS):
     # En production Railway, permettre toutes les origines Railway
-    CSRF_TRUSTED_ORIGINS.extend([
-        'https://*.up.railway.app',
-        'https://*.railway.app',
-    ])
+    # Note: Django ne supporte pas les wildcards dans CSRF_TRUSTED_ORIGINS
+    # Il faut ajouter l'URL exacte dans les variables d'environnement
+    pass
+
+# Session Settings - Important pour Django Admin
+SESSION_COOKIE_SECURE = not DEBUG  # True en production (HTTPS uniquement)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_SAVE_EVERY_REQUEST = True
+
+# CSRF Cookie Settings
+CSRF_COOKIE_SECURE = not DEBUG  # True en production (HTTPS uniquement)
+CSRF_COOKIE_HTTPONLY = False  # False pour permettre JavaScript d'accéder au token
+CSRF_USE_SESSIONS = False  # Utiliser les cookies CSRF (pas les sessions)
 
 # File Upload Settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
