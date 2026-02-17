@@ -89,6 +89,9 @@ def convert_railway_internal_to_public(database_url):
     """
     Convertit l'URL interne Railway (postgres.railway.internal) en URL publique.
     
+    IMPORTANT : En production sur Railway, l'URL interne fonctionne parfaitement.
+    Cette conversion est uniquement pour le développement local avec 'railway run'.
+    
     Méthodes de conversion (par ordre de priorité) :
     1. Si RAILWAY_PUBLIC_DATABASE_URL est défini, l'utiliser directement
     2. Si RAILWAY_PUBLIC_HOSTNAME est défini, remplacer le hostname dans l'URL
@@ -98,7 +101,19 @@ def convert_railway_internal_to_public(database_url):
     if not database_url:
         return database_url
     
-    # Si l'URL contient l'hostname interne Railway
+    # IMPORTANT : En production sur Railway, ne PAS convertir l'URL interne
+    # L'URL interne fonctionne parfaitement dans l'environnement Railway
+    # Détecter si on est sur Railway (production) via les variables d'environnement Railway
+    railway_env = os.environ.get('RAILWAY_ENVIRONMENT')
+    railway_deployment_id = os.environ.get('RAILWAY_DEPLOYMENT_ID')
+    port = os.environ.get('PORT')  # Railway définit toujours PORT
+    
+    # Si on est sur Railway (production), utiliser l'URL telle quelle
+    if (railway_env or railway_deployment_id) and port:
+        # On est sur Railway en production, l'URL interne est correcte
+        return database_url
+    
+    # Si l'URL contient l'hostname interne Railway (et qu'on n'est pas en production Railway)
     if 'postgres.railway.internal' in database_url:
         # Méthode 1 : URL publique complète fournie (depuis .env ou variables Railway)
         public_url = config('RAILWAY_PUBLIC_DATABASE_URL', default=None)
