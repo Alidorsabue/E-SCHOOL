@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
 import { BookOpen, Users, FileText, Calendar } from 'lucide-react'
 

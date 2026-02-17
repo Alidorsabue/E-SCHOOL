@@ -55,7 +55,7 @@ export default function AdminTutoring() {
   const { data: reports, isLoading: reportsLoading, error: reportsError } = useQuery({
     queryKey: ['tutoring-reports', reportFilter],
     queryFn: async () => {
-      const params: Record<string, string> = { page_size: 100 }
+      const params: Record<string, string> = { page_size: '100' }
       if (reportFilter === 'draft') {
         params['is_draft'] = 'true'
       } else if (reportFilter === 'shared') {
@@ -70,7 +70,7 @@ export default function AdminTutoring() {
   const { data: messages, isLoading: messagesLoading, error: messagesError } = useQuery({
     queryKey: ['tutoring-messages', messageFilter],
     queryFn: async () => {
-      const params: Record<string, string> = { page_size: 100 }
+      const params: Record<string, string> = { page_size: '100' }
       if (messageFilter === 'unread') {
         params['is_read'] = 'false'
       } else if (messageFilter === 'important') {

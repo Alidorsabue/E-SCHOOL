@@ -51,7 +51,6 @@ export default function StudentCommunication() {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
   const [messageFilter, setMessageFilter] = useState<'all' | 'sent' | 'received'>('received')
   const [replyToMessage, setReplyToMessage] = useState<Message | null>(null)
-  const [replyToMessage, setReplyToMessage] = useState<Message | null>(null)
 
   // Récupérer les messages
   const { data: messagesData, isLoading: messagesLoading } = useQuery({

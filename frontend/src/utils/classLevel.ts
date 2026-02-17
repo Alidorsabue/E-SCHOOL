@@ -15,6 +15,6 @@ export function classLevelOrder(name: string): number {
 }
 
 /** Retourne la classe avec le niveau le plus bas (1ère avant 2ème, etc.). */
-export function sortClassesByLevel<T extends { name?: string | null }>(classes: T[]): T[] {
+export function sortClassesByLevel<T extends { name?: string | null; id?: number }>(classes: T[]): T[] {
   return [...classes].sort((a, b) => classLevelOrder(a.name ?? '') - classLevelOrder(b.name ?? ''))
 }

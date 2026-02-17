@@ -59,8 +59,8 @@ export default function AdminDashboard() {
           teachers, 
           payments, 
           enrollments,
-          attendanceRate: parseFloat(attendanceRate),
-          averageGrade: parseFloat(averageGrade),
+          attendanceRate: parseFloat(String(attendanceRate)),
+          averageGrade: parseFloat(String(averageGrade)),
           activeClasses,
           availableBooks
         }

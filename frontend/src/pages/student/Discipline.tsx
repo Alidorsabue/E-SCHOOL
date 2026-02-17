@@ -4,7 +4,7 @@ import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import { Eye, XCircle, CheckCircle } from 'lucide-react'
+import { Eye, XCircle } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 interface DisciplineRecord {

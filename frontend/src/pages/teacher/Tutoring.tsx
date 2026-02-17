@@ -82,7 +82,7 @@ export default function TeacherTutoring() {
   const { data: reports, isLoading: reportsLoading } = useQuery({
     queryKey: ['teacher-tutoring-reports', reportFilter],
     queryFn: async () => {
-      const params: Record<string, string> = { page_size: 100 }
+      const params: Record<string, string> = { page_size: '100' }
       if (reportFilter === 'draft') {
         params['is_draft'] = 'true'
       } else if (reportFilter === 'shared') {
@@ -96,7 +96,7 @@ export default function TeacherTutoring() {
   const { data: messages, isLoading: messagesLoading } = useQuery({
     queryKey: ['teacher-tutoring-messages', messageFilter],
     queryFn: async () => {
-      const params: Record<string, string> = { page_size: 100 }
+      const params: Record<string, string> = { page_size: '100' }
       if (messageFilter === 'unread') {
         params['is_read'] = 'false'
       } else if (messageFilter === 'important') {

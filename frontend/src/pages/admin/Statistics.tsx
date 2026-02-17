@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
-import { BarChart3, TrendingUp, Users, BookOpen } from 'lucide-react'
+import { BarChart3, TrendingUp, BookOpen } from 'lucide-react'
 
 export default function AdminStatistics() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['admin-statistics'],
     queryFn: async () => {
       // Mock statistics - replace with actual API calls

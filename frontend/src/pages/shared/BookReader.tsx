@@ -13,9 +13,7 @@ import {
   StickyNote,
   FileText,
   X,
-  Plus,
-  Edit2,
-  Trash2
+  Plus
 } from 'lucide-react'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 

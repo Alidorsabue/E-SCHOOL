@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
-import { BookOpen, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 
 export default function StudentCourses() {
   const { data: courses, isLoading } = useQuery({

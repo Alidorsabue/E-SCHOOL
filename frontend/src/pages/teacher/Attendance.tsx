@@ -53,7 +53,8 @@ export default function TeacherAttendance() {
   useEffect(() => {
     if (classes.length === 0 || selectedClass !== null) return
     const sorted = sortClassesByLevel(classes)
-    setSelectedClass(sorted[0].id)
+    const firstId = (sorted[0] as { id?: number })?.id
+    if (firstId != null) setSelectedClass(firstId)
   }, [classes, selectedClass])
 
   const { data: attendance, isLoading } = useQuery({

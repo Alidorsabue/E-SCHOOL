@@ -116,7 +116,7 @@ export default function TeacherMyClass() {
   useEffect(() => {
     if (classes.length === 0 || selectedClass !== null) return
     const sorted = sortClassesByLevel(classes)
-    const c = sorted[0]
+    const c = sorted[0] as { id: number; academic_year?: string }
     setSelectedClass(c.id)
     if (c.academic_year) setAcademicYear(c.academic_year)
   }, [classes, selectedClass])

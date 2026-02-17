@@ -115,7 +115,8 @@ export default function TeacherClassSubjects() {
   useEffect(() => {
     if (classes.length === 0 || selectedClass !== null) return
     const sorted = sortClassesByLevel(classes)
-    setSelectedClass(sorted[0].id)
+    const firstId = (sorted[0] as { id?: number })?.id
+    if (firstId != null) setSelectedClass(firstId)
   }, [classes, selectedClass])
 
   const subjects = useMemo(() => subjectsData?.results ?? [], [subjectsData])
@@ -123,7 +124,7 @@ export default function TeacherClassSubjects() {
   const classSubjects = useMemo(() => classSubjectsData?.results ?? [], [classSubjectsData])
   const assignedIds = useMemo(() => new Set(classSubjects.map((cs: any) => cs.subject)), [classSubjects])
   const availableSubjects = useMemo(
-    () => subjects.filter((s: any) => !assignedIds.has(s.id)),
+    () => subjects.filter((s: { id?: number }) => s.id != null && !assignedIds.has(s.id)),
     [subjects, assignedIds]
   )
 

@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
 import { Plus, Video, FileText } from 'lucide-react'
-import { useState } from 'react'
 
 export default function TeacherElearning() {
   const { data: courses, isLoading } = useQuery({

@@ -78,7 +78,7 @@ export default function PaymentForm({
     onSubmit(payload)
   }
 
-  const feeTypesList = Array.isArray(feeTypes) ? feeTypes : feeTypes?.results ?? []
+  const feeTypesList = Array.isArray(feeTypes) ? feeTypes : ((feeTypes as { results?: FeeTypeOption[] })?.results ?? [])
 
   return (
     <Card className="mb-6">
@@ -130,7 +130,7 @@ export default function PaymentForm({
                 </option>
               ))}
             {mode === 'accountant' &&
-              studentOptions.map((s: StudentOption) => (
+              (studentOptions as StudentOption[]).map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.user?.first_name} {s.user?.last_name} - {s.student_id}
                 </option>

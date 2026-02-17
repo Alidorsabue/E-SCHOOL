@@ -115,7 +115,7 @@ export default function AdminClasses() {
 
   // Extraire les années académiques uniques pour le filtre
   const academicYears: string[] = classes?.results 
-    ? (Array.from(new Set(classes.results.map((cls: any) => cls.academic_year).filter((year): year is string => Boolean(year)))) as string[]).sort().reverse()
+    ? (Array.from(new Set(classes.results.map((cls: any) => cls.academic_year).filter((year: unknown): year is string => Boolean(year)))) as string[]).sort().reverse()
     : []
 
   // Filtrer les classes selon la recherche et l'année académique
