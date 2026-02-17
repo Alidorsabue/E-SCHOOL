@@ -82,16 +82,32 @@ class Command(BaseCommand):
         try:
             if User.objects.filter(username=username).exists():
                 user = User.objects.get(username=username)
-                # S'assurer qu'il est superuser
+                # Si l'utilisateur existe mais que le mot de passe n'est pas hashé (commence par pbkdf2_sha256$)
+                # ou s'il n'est pas superuser, le corriger
+                needs_update = False
+                
+                if not user.password.startswith('pbkdf2_sha256$'):
+                    # Le mot de passe n'est pas hashé, le hasher
+                    from django.contrib.auth.hashers import make_password
+                    user.password = make_password(password)
+                    needs_update = True
+                    self.stdout.write(self.style.WARNING(f"⚠ Mot de passe de '{username}' n'était pas hashé, correction en cours..."))
+                
                 if not user.is_superuser:
                     user.is_superuser = True
+                    needs_update = True
+                
+                if not user.is_staff:
                     user.is_staff = True
-                    # Le superadmin n'a pas besoin d'être associé à une école spécifique
-                    # Il peut gérer toutes les écoles
+                    needs_update = True
+                
+                # Le superadmin n'a pas besoin d'être associé à une école spécifique
+                # Il peut gérer toutes les écoles
+                if needs_update:
                     user.save()
-                    self.stdout.write(self.style.SUCCESS(f"✓ Utilisateur '{username}' promu SUPERADMIN"))
+                    self.stdout.write(self.style.SUCCESS(f"✓ Utilisateur '{username}' mis à jour et promu SUPERADMIN"))
                 else:
-                    self.stdout.write(f"SUPERADMIN '{username}' existe déjà")
+                    self.stdout.write(f"SUPERADMIN '{username}' existe déjà et est correctement configuré")
                 return
 
             # Créer un SUPERADMIN (is_superuser=True, pas d'école assignée)
