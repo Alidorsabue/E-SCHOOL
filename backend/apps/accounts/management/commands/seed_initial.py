@@ -108,6 +108,12 @@ class Command(BaseCommand):
                     needs_update = True
                     self.stdout.write(self.style.WARNING(f"⚠ is_active était False, correction en cours..."))
                 
+                # S'assurer que le rôle est défini (ADMIN pour le superadmin)
+                if not user.role or user.role == '':
+                    user.role = 'ADMIN'
+                    needs_update = True
+                    self.stdout.write(self.style.WARNING(f"⚠ Le rôle n'était pas défini, définition à 'ADMIN'..."))
+                
                 # Le superadmin n'a pas besoin d'être associé à une école spécifique
                 # Il peut gérer toutes les écoles
                 if needs_update:

@@ -320,6 +320,10 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@eschool.rdc')
 
+# Mots de passe par défaut pour les parents et élèves
+DEFAULT_PARENT_PASSWORD = config('DEFAULT_PARENT_PASSWORD', default='Parent@@')
+DEFAULT_STUDENT_PASSWORD = config('DEFAULT_STUDENT_PASSWORD', default='Eleve@@')
+
 # Logging
 LOGGING_CONFIG = None
 import logging.config

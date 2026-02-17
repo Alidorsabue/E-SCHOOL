@@ -60,8 +60,9 @@ def _get_or_create_parent_user(application):
     if existing_parent:
         return existing_parent, False
 
-    # Mot de passe par défaut : Prénom+Nom@ (ex: AlidorSABUE@)
-    default_password = f"{first_name}{last_name}@"
+    # Mot de passe par défaut pour les parents
+    from django.conf import settings
+    default_password = getattr(settings, 'DEFAULT_PARENT_PASSWORD', 'Parent@@')
 
     try:
         parent_user = User.objects.create_user(
@@ -214,6 +215,10 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         # Créer ou récupérer l'utilisateur parent à partir des infos parent/tuteur
         parent_user, parent_created = _get_or_create_parent_user(application)
 
+        # Mot de passe par défaut pour les élèves
+        from django.conf import settings
+        default_student_password = getattr(settings, 'DEFAULT_STUDENT_PASSWORD', 'Eleve@@')
+        
         user = User.objects.create_user(
             username=username,
             email=application.email or f"{username}@eschool.rdc",
@@ -223,7 +228,8 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             role='STUDENT',
             school=application.school,
             date_of_birth=application.date_of_birth,
-            address=application.address
+            address=application.address,
+            password=default_student_password
         )
         
         # Create student profile (lié au parent si créé)
