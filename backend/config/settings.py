@@ -84,7 +84,64 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database - Railway fournit DATABASE_URL, sinon on utilise les variables individuelles
 DATABASE_URL = config('DATABASE_URL', default=None)
+
+def convert_railway_internal_to_public(database_url):
+    """
+    Convertit l'URL interne Railway (postgres.railway.internal) en URL publique.
+    
+    Méthodes de conversion (par ordre de priorité) :
+    1. Si RAILWAY_PUBLIC_DATABASE_URL est défini, l'utiliser directement
+    2. Si RAILWAY_PUBLIC_HOSTNAME est défini, remplacer le hostname dans l'URL
+    3. Si POSTGRES_URL (variable Railway alternative) existe et est publique, l'utiliser
+    4. Sinon, retourner l'URL originale (erreur de connexion attendue en local)
+    """
+    if not database_url:
+        return database_url
+    
+    # Si l'URL contient l'hostname interne Railway
+    if 'postgres.railway.internal' in database_url:
+        # Méthode 1 : URL publique complète fournie (depuis .env ou variables Railway)
+        public_url = config('RAILWAY_PUBLIC_DATABASE_URL', default=None)
+        if public_url and 'postgres.railway.internal' not in public_url:
+            return public_url
+        
+        # Méthode 2 : Vérifier POSTGRES_URL (variable alternative Railway)
+        postgres_url = config('POSTGRES_URL', default=None)
+        if postgres_url and 'postgres.railway.internal' not in postgres_url:
+            return postgres_url
+        
+        # Méthode 3 : Hostname public fourni, remplacer dans l'URL
+        public_hostname = config('RAILWAY_PUBLIC_HOSTNAME', default=None)
+        if public_hostname:
+            import re
+            # Remplacer postgres.railway.internal par l'hostname public
+            converted_url = re.sub(
+                r'@postgres\.railway\.internal',
+                f'@{public_hostname}',
+                database_url
+            )
+            return converted_url
+        
+        # Méthode 4 : Aucune conversion disponible
+        # En local, cela causera une erreur de connexion
+        # L'utilisateur doit obtenir l'URL publique depuis Railway
+        if DEBUG:
+            import warnings
+            warnings.warn(
+                "DATABASE_URL contient 'postgres.railway.internal' (URL interne Railway).\n"
+                "Pour se connecter depuis votre machine locale avec 'railway run', vous devez :\n"
+                "1. Obtenir l'URL publique depuis Railway Dashboard → PostgreSQL → Connect → Public Network\n"
+                "2. Ajouter RAILWAY_PUBLIC_DATABASE_URL dans les variables Railway (pas dans .env local)\n"
+                "   Ou définir RAILWAY_PUBLIC_HOSTNAME avec l'hostname public\n"
+                "Voir CONFIGURER_DATABASE_URL_PUBLIQUE.md pour plus d'informations.",
+                UserWarning
+            )
+    
+    return database_url
+
 if DATABASE_URL:
+    # Convertir l'URL interne en URL publique si nécessaire
+    DATABASE_URL = convert_railway_internal_to_public(DATABASE_URL)
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, conn_health_checks=True)
     }

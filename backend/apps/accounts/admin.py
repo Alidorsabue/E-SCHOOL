@@ -32,16 +32,75 @@ class UserAdmin(SchoolScopedAdminMixin, BaseUserAdmin):
         return qs
     
     def save_model(self, request, obj, form, change):
-        # Assigner automatiquement l'école lors de la création pour les admins d'école
-        if not change and not obj.school:
-            if request.user.is_authenticated and request.user.is_admin and request.user.school:
-                obj.school = request.user.school
+        # Si c'est un superadmin qui crée/modifie, laisser faire
+        if request.user.is_superuser:
+            # Les superadmins peuvent créer des admins d'école
+            # S'assurer que les admins d'école ont is_staff=True pour accéder à Django admin
+            if obj.is_admin and not obj.is_superuser and not obj.is_staff:
+                obj.is_staff = True
+            super().save_model(request, obj, form, change)
+            return
         
-        # S'assurer que les admins d'école ont is_staff=True pour accéder à Django admin
-        if obj.is_admin and not obj.is_staff:
-            obj.is_staff = True
+        # Pour les admins d'école (non superuser)
+        if request.user.is_authenticated and request.user.is_admin and request.user.school:
+            # Assigner automatiquement l'école lors de la création
+            if not change and not obj.school:
+                obj.school = request.user.school
+            
+            # Les admins d'école ne peuvent pas créer d'autres admins d'école
+            # Ils ne peuvent créer que des enseignants, parents, élèves, etc.
+            if obj.is_admin and obj != request.user:
+                from django.core.exceptions import PermissionDenied
+                raise PermissionDenied(
+                    "Les admins d'école ne peuvent pas créer d'autres admins. "
+                    "Seuls les superadmins peuvent créer des admins d'école."
+                )
+            
+            # S'assurer que les admins d'école ont is_staff=True pour accéder à Django admin
+            if obj.is_admin and not obj.is_staff:
+                obj.is_staff = True
         
         super().save_model(request, obj, form, change)
+    
+    def has_add_permission(self, request):
+        """Seuls les superadmins peuvent créer des admins d'école"""
+        if request.user.is_superuser:
+            return True
+        # Les admins d'école peuvent créer des utilisateurs (enseignants, parents, élèves)
+        # mais pas d'autres admins
+        if request.user.is_authenticated and request.user.is_admin and request.user.school and request.user.is_staff:
+            return True
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Permissions de modification"""
+        if request.user.is_superuser:
+            return True
+        if request.user.is_authenticated and request.user.is_admin and request.user.school and request.user.is_staff:
+            if obj is None:
+                return True
+            # Les admins d'école ne peuvent modifier que les utilisateurs de leur école
+            if obj.school == request.user.school:
+                # Mais ils ne peuvent pas modifier d'autres admins d'école
+                if obj.is_admin and obj != request.user:
+                    return False
+                return True
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Permissions de suppression"""
+        if request.user.is_superuser:
+            return True
+        if request.user.is_authenticated and request.user.is_admin and request.user.school and request.user.is_staff:
+            if obj is None:
+                return True
+            # Les admins d'école ne peuvent supprimer que les utilisateurs de leur école
+            # mais pas d'autres admins d'école
+            if obj.school == request.user.school:
+                if obj.is_admin and obj != request.user:
+                    return False
+                return True
+        return False
 
 
 @admin.register(Teacher)
