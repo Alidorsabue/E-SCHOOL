@@ -96,10 +96,17 @@ class Command(BaseCommand):
                 if not user.is_superuser:
                     user.is_superuser = True
                     needs_update = True
+                    self.stdout.write(self.style.WARNING(f"⚠ is_superuser était False, correction en cours..."))
                 
                 if not user.is_staff:
                     user.is_staff = True
                     needs_update = True
+                    self.stdout.write(self.style.WARNING(f"⚠ is_staff était False, correction en cours..."))
+                
+                if not user.is_active:
+                    user.is_active = True
+                    needs_update = True
+                    self.stdout.write(self.style.WARNING(f"⚠ is_active était False, correction en cours..."))
                 
                 # Le superadmin n'a pas besoin d'être associé à une école spécifique
                 # Il peut gérer toutes les écoles
