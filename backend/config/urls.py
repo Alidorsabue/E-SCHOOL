@@ -23,8 +23,11 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+# URL de l'admin personnalisée (voir settings.DJANGO_ADMIN_URL, ex. secret-admin-xyz en prod)
+_admin_path = getattr(settings, 'DJANGO_ADMIN_URL', 'admin').strip().strip('/') or 'admin'
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(f'{_admin_path}/', admin.site.urls),
     
     # API Documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),

@@ -18,6 +18,10 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# URL de l'admin Django (en production sur Railway : définir DJANGO_ADMIN_URL à une valeur secrète)
+# Ex. DJANGO_ADMIN_URL=secret-admin-xyz123 → https://votredomaine.com/secret-admin-xyz123/
+DJANGO_ADMIN_URL = config('DJANGO_ADMIN_URL', default='admin').strip().strip('/') or 'admin'
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -34,6 +38,7 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_yasg',
     'phonenumber_field',
+    'axes',  # Protection force brute sur l'admin Django
     
     # Local apps
     'apps.accounts.apps.AccountsConfig',
@@ -60,6 +65,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Custom middleware for multi-tenant
     'apps.schools.middleware.TenantMiddleware',
+    # Protection force brute admin (doit être en dernier)
+    'axes.middleware.AxesMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -224,6 +231,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
+
+# Backends d'authentification (axes en premier pour bloquer les IP/utilisateurs après trop d'échecs)
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# django-axes : limitation des tentatives de connexion (admin Django)
+AXES_FAILURE_LIMIT = 5  # 5 échecs = blocage
+AXES_COOLOFF_TIME = 1   # 1 heure de blocage
+AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True  # bloquer par couple (utilisateur + IP)
+AXES_ONLY_ADMIN_SITE = True  # uniquement sur l'admin Django (pas sur l'API JWT)
+AXES_ENABLE_ACCESS_FAILURE_LOG = True  # log des échecs
+AXES_USE_USER_AGENT = False  # ne pas inclure le User-Agent dans la clé de blocage (plus simple)
 
 # REST Framework
 REST_FRAMEWORK = {

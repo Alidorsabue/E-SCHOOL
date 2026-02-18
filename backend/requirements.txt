@@ -29,6 +29,9 @@ pytest==7.4.3
 pytest-django==4.7.0
 pytest-cov==4.1.0
 factory-boy==3.3.0
+# Admin security (force brute)
+django-axes>=6.0.0
+
 # Validation
 django-phonenumber-field==7.1.0
 phonenumbers==8.13.26
