@@ -1,4 +1,4 @@
-import { Bell, Menu, X } from 'lucide-react'
+import { Bell, Menu } from 'lucide-react'
 import { User as UserType } from '@/types'
 import logoImage from '@/images/logo.png'
 import UserMenu from '@/components/user/UserMenu'
