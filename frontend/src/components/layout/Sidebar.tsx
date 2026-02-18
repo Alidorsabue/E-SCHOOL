@@ -42,7 +42,6 @@ const adminMenu = [
   { path: '/admin/tutoring', label: 'Encadrement', icon: MessageSquare },
   { path: '/admin/discipline', label: 'Fiches de discipline', icon: AlertCircle },
   { path: '/admin/communication', label: 'Communication', icon: MessageSquare },
-  { path: '/admin/statistics', label: 'Statistiques', icon: BarChart3 },
 ]
 
 const teacherMenu = [

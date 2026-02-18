@@ -17,7 +17,6 @@ import AdminMeetings from './pages/admin/Meetings'
 import AdminLibrary from './pages/admin/Library'
 import AdminElearning from './pages/admin/Elearning'
 import AdminTutoring from './pages/admin/Tutoring'
-import AdminStatistics from './pages/admin/Statistics'
 import AdminFormerStudents from './pages/admin/FormerStudents'
 import AdminDiscipline from './pages/admin/Discipline'
 import AdminCommunication from './pages/admin/Communication'
@@ -119,7 +118,6 @@ function App() {
           <Route path="elearning" element={<AdminElearning />} />
           <Route path="tutoring" element={<AdminTutoring />} />
           <Route path="discipline" element={<AdminDiscipline />} />
-          <Route path="statistics" element={<AdminStatistics />} />
           <Route path="former-students" element={<AdminFormerStudents />} />
           <Route path="communication" element={<AdminCommunication />} />
         </Route>
