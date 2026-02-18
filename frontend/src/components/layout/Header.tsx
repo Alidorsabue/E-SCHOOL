@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react'
+import { Bell, Menu, X } from 'lucide-react'
 import { User as UserType } from '@/types'
 import logoImage from '@/images/logo.png'
 import UserMenu from '@/components/user/UserMenu'
@@ -6,14 +6,17 @@ import UserMenu from '@/components/user/UserMenu'
 interface HeaderProps {
   user: UserType
   onLogout: () => void
+  onMenuClick: () => void
 }
 
-export default function Header({ user, onLogout }: HeaderProps) {
+export default function Header({ user, onLogout, onMenuClick }: HeaderProps) {
   const roleLabels: Record<string, string> = {
     ADMIN: 'Administrateur',
     TEACHER: 'Enseignant',
     PARENT: 'Parent',
     STUDENT: 'Élève',
+    ACCOUNTANT: 'Comptable',
+    DISCIPLINE_OFFICER: 'Officier de discipline',
   }
 
   // Nom de l'école ou fallback
@@ -30,22 +33,32 @@ export default function Header({ user, onLogout }: HeaderProps) {
 
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors">
-      <div className="px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {/* Logo E-School (logo par défaut) - Agrandi */}
+      <div className="px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+          {/* Bouton menu hamburger pour mobile */}
+          <button
+            onClick={onMenuClick}
+            className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors flex-shrink-0"
+            aria-label="Toggle menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          
+          {/* Logo E-School (logo par défaut) */}
           <img 
             src={logoImage} 
             alt="E-School" 
-            className="h-16 w-auto"
+            className="h-10 sm:h-12 lg:h-16 w-auto flex-shrink-0"
           />
+          
           {/* Nom et logo de l'école */}
           {user.school && (
-            <div className="flex items-center space-x-3 border-l border-gray-300 dark:border-gray-600 pl-4">
+            <div className="flex items-center space-x-2 sm:space-x-3 border-l border-gray-300 dark:border-gray-600 pl-2 sm:pl-4 min-w-0 flex-1">
               {schoolLogo ? (
                 <img 
                   src={schoolLogo} 
                   alt={schoolName}
-                  className="h-12 w-auto max-w-[180px] object-contain"
+                  className="h-8 sm:h-10 lg:h-12 w-auto max-w-[120px] sm:max-w-[150px] lg:max-w-[180px] object-contain flex-shrink-0"
                   onError={(e) => {
                     // Remplacer par le placeholder si le logo ne charge pas
                     const target = e.currentTarget
@@ -59,29 +72,31 @@ export default function Header({ user, onLogout }: HeaderProps) {
                 />
               ) : null}
               <div 
-                className={`h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-md ${schoolLogo ? 'hidden' : ''}`}
+                className={`h-8 sm:h-10 lg:h-12 w-8 sm:w-10 lg:w-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-md flex-shrink-0 ${schoolLogo ? 'hidden' : ''}`}
               >
-                <span className="text-white font-bold text-lg">
+                <span className="text-white font-bold text-sm sm:text-base lg:text-lg">
                   {schoolName.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <span className="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider leading-tight ">
+              <span className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wider leading-tight truncate">
                 {schoolName}
               </span>
             </div>
           )}
         </div>
         
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
           <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white relative transition-colors">
             <Bell className="w-5 h-5" />
             <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
           
-          <div className="flex items-center space-x-3">
-            <div className="text-right hidden md:block">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{user.first_name} {user.last_name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{roleLabels[user.role]}</p>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[120px] lg:max-w-none">
+                {user.first_name} {user.last_name}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{roleLabels[user.role] || user.role}</p>
             </div>
             <UserMenu user={user} onLogout={onLogout} />
           </div>

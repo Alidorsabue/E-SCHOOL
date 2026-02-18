@@ -14,13 +14,16 @@ import {
   Home,
   UserCheck,
   AlertCircle,
-  Wallet
+  Wallet,
+  X
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 interface SidebarProps {
   user: User
   currentPath: string
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 const adminMenu = [
@@ -96,7 +99,7 @@ const disciplineOfficerMenu = [
   { path: '/discipline-officer/communication', label: 'Communication', icon: MessageSquare },
 ]
 
-export default function Sidebar({ user, currentPath }: SidebarProps) {
+export default function Sidebar({ user, currentPath, isOpen = false, onClose }: SidebarProps) {
   const getMenu = () => {
     switch (user.role) {
       case 'ADMIN':
@@ -119,29 +122,76 @@ export default function Sidebar({ user, currentPath }: SidebarProps) {
   const menu = getMenu()
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-[calc(100vh-73px)] transition-colors">
-      <nav className="p-4 space-y-2">
-        {menu.map((item) => {
-          const Icon = item.icon
-          const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
-          
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={cn(
-                'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
-                isActive
-                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-              )}
+    <>
+      {/* Sidebar pour desktop - toujours visible */}
+      <aside className="hidden lg:flex lg:w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-[calc(100vh-73px)] transition-colors flex-shrink-0">
+        <nav className="p-4 space-y-2 w-full">
+          {menu.map((item) => {
+            const Icon = item.icon
+            const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
+            
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                )}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            )
+          })}
+        </nav>
+      </aside>
+
+      {/* Sidebar pour mobile - overlay */}
+      <aside
+        className={cn(
+          'fixed top-[65px] sm:top-[73px] left-0 h-[calc(100vh-65px)] sm:h-[calc(100vh-73px)] w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 z-50 transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              aria-label="Fermer le menu"
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </NavLink>
-          )
-        })}
-      </nav>
-    </aside>
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        <nav className="p-4 space-y-2">
+          {menu.map((item) => {
+            const Icon = item.icon
+            const isActive = currentPath === item.path || currentPath.startsWith(item.path + '/')
+            
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={cn(
+                  'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
+                  isActive
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                )}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </NavLink>
+            )
+          })}
+        </nav>
+      </aside>
+    </>
   )
 }

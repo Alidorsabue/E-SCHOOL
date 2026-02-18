@@ -175,8 +175,8 @@ export default function AdminTeachers() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestion des Enseignants</h1>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Gestion des Enseignants</h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="btn btn-primary flex items-center gap-2"
