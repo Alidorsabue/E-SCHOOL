@@ -274,7 +274,7 @@ def generate_report_card_pdf(report_card):
     <b>Élève:</b> {student.user.get_full_name()}<br/>
     <b>Matricule:</b> {student.student_id}<br/>
     <b>Classe:</b> {student.school_class.name if student.school_class else 'N/A'}<br/>
-    <b>Année académique:</b> {report_card.academic_year}<br/>
+    <b>Année scolaire:</b> {report_card.academic_year}<br/>
     <b>Trimestre:</b> {report_card.get_term_display()}<br/>
     """
     story.append(Paragraph(student_info, styles['Normal']))

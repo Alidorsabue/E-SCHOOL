@@ -13,7 +13,7 @@ const assignmentSchema = z.object({
   description: z.string().min(1, 'La description est requise'),
   subject: z.number().min(1, 'La matière est requise'),
   school_class: z.number().min(1, 'La classe est requise'),
-  academic_year: z.string().min(1, 'L\'année académique est requise'),
+  academic_year: z.string().min(1, 'L\'année scolaire est requise'),
   due_date: z.string().min(1, 'La date limite est requise'),
   total_points: z.number().min(0, 'Les points doivent être positifs').default(20),
   is_published: z.boolean().default(false),
@@ -316,7 +316,7 @@ export default function TeacherAssignments() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Année académique <span className="text-red-500">*</span>
+                  Année scolaire <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register('academic_year')}
@@ -572,7 +572,7 @@ export default function TeacherAssignments() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année académique</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année scolaire</label>
                           <input {...register('academic_year')} className="input w-full" />
                         </div>
                         <div>

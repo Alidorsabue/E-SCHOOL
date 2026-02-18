@@ -18,8 +18,8 @@ class AcademicYear(models.Model):
     is_current = models.BooleanField(default=False, verbose_name="Année actuelle")
     
     class Meta:
-        verbose_name = "Année académique"
-        verbose_name_plural = "Années académiques"
+        verbose_name = "Année scolaire"
+        verbose_name_plural = "Années scolaires"
         unique_together = ['school', 'name']
     
     def __str__(self):
@@ -37,7 +37,7 @@ class Grade(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='grades', verbose_name="Élève")
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='grades', verbose_name="Matière")
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, related_name='given_grades', verbose_name="Enseignant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     term = models.CharField(max_length=2, choices=TERM_CHOICES, verbose_name="Trimestre")
     
     # Grades
@@ -106,7 +106,7 @@ class GradeBulletin(models.Model):
         related_name='grade_bulletins', verbose_name="Classe (contexte de la note)"
     )
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True, related_name='given_grade_bulletins', verbose_name="Enseignant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
     # Premier semestre: 1ère P., 2ème P., EXAM.
     s1_p1 = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, validators=[MinValueValidator(0)], verbose_name="S1 - 1ère P. (Trav. journaliers)")
@@ -296,7 +296,7 @@ class ReportCard(models.Model):
     DECISION_CHOICES = [('PASSE', 'Passé'), ('DOUBLE', 'Double'), ('REPECHAGE', 'Avec repêchage')]
     
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='report_cards', verbose_name="Élève")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     term = models.CharField(max_length=2, choices=BULLETIN_TERM_CHOICES, verbose_name="Période", default='AN')
     
     # Summary

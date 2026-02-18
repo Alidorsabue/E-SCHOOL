@@ -16,10 +16,14 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
   final _formKey = GlobalKey<FormState>();
   final _studentNameController = TextEditingController();
   final _studentSurnameController = TextEditingController();
+  final _studentMiddleNameController = TextEditingController();
   final _birthDateController = TextEditingController();
+  final _placeOfBirthController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
+  final _parentNameController = TextEditingController();
+  final _motherNameController = TextEditingController();
   
   String? _selectedSchool;
   String? _selectedClass;
@@ -41,10 +45,14 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
   void dispose() {
     _studentNameController.dispose();
     _studentSurnameController.dispose();
+    _studentMiddleNameController.dispose();
     _birthDateController.dispose();
+    _placeOfBirthController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _addressController.dispose();
+    _parentNameController.dispose();
+    _motherNameController.dispose();
     super.dispose();
   }
 
@@ -109,16 +117,24 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
     });
 
     try {
+      final now = DateTime.now();
+      final academicYear = '${now.year}-${now.year + 1}';
       final data = {
-        'student_first_name': _studentNameController.text.trim(),
-        'student_last_name': _studentSurnameController.text.trim(),
-        'birth_date': _birthDate?.toIso8601String(),
+        'academic_year': academicYear,
+        'first_name': _studentNameController.text.trim(),
+        'last_name': _studentSurnameController.text.trim(),
+        'middle_name': _studentMiddleNameController.text.trim().isEmpty ? null : _studentMiddleNameController.text.trim(),
+        'date_of_birth': _birthDate?.toIso8601String(),
         'gender': _selectedGender,
+        'place_of_birth': _placeOfBirthController.text.trim().isEmpty ? '' : _placeOfBirthController.text.trim(),
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'address': _addressController.text.trim(),
-        'school': _selectedSchool,
-        'class': _selectedClass,
+        'requested_class': _selectedClass,
+        'parent_name': _parentNameController.text.trim(),
+        'mother_name': _motherNameController.text.trim().isEmpty ? null : _motherNameController.text.trim(),
+        'parent_phone': _phoneController.text.trim(),
+        'parent_email': _emailController.text.trim(),
       };
 
       // Ajouter à la queue de synchronisation
@@ -201,6 +217,14 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _studentMiddleNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Postnom',
+                  prefixIcon: Icon(Icons.badge_outlined),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _birthDateController,
                 decoration: const InputDecoration(
                   labelText: 'Date de naissance *',
@@ -237,6 +261,47 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _placeOfBirthController,
+                decoration: const InputDecoration(
+                  labelText: 'Lieu de naissance *',
+                  prefixIcon: Icon(Icons.place),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Champ requis';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Informations du parent / tuteur',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _parentNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom du parent *',
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Champ requis';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _motherNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nom de la mère',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
               ),
               const SizedBox(height: 24),
               Text(

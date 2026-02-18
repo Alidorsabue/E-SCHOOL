@@ -13,7 +13,7 @@ class Course(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='courses', verbose_name="Matière")
     school_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, related_name='courses', verbose_name="Classe")
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='courses', verbose_name="Enseignant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
     # Content
     content = models.TextField(verbose_name="Contenu")
@@ -46,7 +46,7 @@ class Assignment(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='assignments', verbose_name="Matière")
     school_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, related_name='assignments', verbose_name="Classe")
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='assignments', verbose_name="Enseignant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
     # Files
     assignment_file = models.FileField(upload_to='assignments/', null=True, blank=True, verbose_name="Fichier du devoir")
@@ -152,7 +152,7 @@ class Quiz(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='quizzes', verbose_name="Matière")
     school_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, related_name='quizzes', verbose_name="Classe")
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='quizzes', verbose_name="Enseignant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
     # Settings
     total_points = models.DecimalField(max_digits=5, decimal_places=2, default=20, verbose_name="Points totaux")

@@ -14,7 +14,7 @@ const courseSchema = z.object({
   subject: z.number().min(1, 'La matière est requise'),
   school_class: z.number().min(1, 'La classe est requise'),
   teacher: z.number().min(1, 'L\'enseignant est requis'),
-  academic_year: z.string().min(1, 'L\'année académique est requise'),
+  academic_year: z.string().min(1, 'L\'année scolaire est requise'),
   content: z.string().min(1, 'Le contenu est requis'),
   video_url: z.string().url('URL invalide').optional().or(z.literal('')),
   is_published: z.boolean().default(false),
@@ -164,7 +164,7 @@ export default function AdminElearning() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Année académique <span className="text-red-500">*</span>
+                  Année scolaire <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register('academic_year')}

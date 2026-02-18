@@ -81,9 +81,32 @@ class AuthRepository {
     }
   }
 
+  /// Convertit récursivement Map/listes en Map<String, dynamic> / List pour éviter les casts Map<dynamic, dynamic>.
+  static Map<String, dynamic> _toJsonMap(dynamic value) {
+    if (value == null) return {};
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((k, v) => MapEntry(k.toString(), _toJsonValue(v)));
+    }
+    return {};
+  }
+
+  static dynamic _toJsonValue(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) return _toJsonMap(value);
+    if (value is List) return value.map(_toJsonValue).toList();
+    return value;
+  }
+
   Future<UserModel> getCurrentUser() async {
-    final response = await _apiService.get('/api/auth/users/me/');
-    return UserModel.fromJson(response.data);
+    final response = await _apiService.get<Map<String, dynamic>>(
+      '/api/auth/users/me/',
+      useCache: false,
+    );
+    final data = response.data;
+    if (data == null) throw Exception('Réponse vide');
+    final Map<String, dynamic> json = _toJsonMap(data);
+    return UserModel.fromJson(json);
   }
 
   Future<void> logout() async {

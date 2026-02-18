@@ -205,7 +205,7 @@ export default function TeacherMyClass() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année académique</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année scolaire</label>
             {yearStrings.length > 0 ? (
               <select value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} className="input">
                 {yearStrings.map((y) => (

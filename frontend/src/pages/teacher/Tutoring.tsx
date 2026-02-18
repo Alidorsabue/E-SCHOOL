@@ -582,8 +582,8 @@ export default function TeacherTutoring() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Progrès académique *</label>
-                <textarea name="academic_progress" required rows={4} className="input" placeholder="Décrivez le progrès académique..." />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Progrès scolaire *</label>
+                <textarea name="academic_progress" required rows={4} className="input" placeholder="Décrivez le progrès scolaire..." />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observations comportementales</label>
@@ -765,7 +765,7 @@ export default function TeacherTutoring() {
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Progrès académique</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Progrès scolaire</label>
                 <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/50 p-3 rounded mt-1 whitespace-pre-line">
                   {selectedReport.academic_progress}
                 </p>

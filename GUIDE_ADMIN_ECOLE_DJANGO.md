@@ -161,7 +161,7 @@ Le système configure automatiquement :
    - Email
    - Logo
    - Site web
-   - Année académique
+   - Année scolaire
    - Devise
    - Langue
    - Statut actif

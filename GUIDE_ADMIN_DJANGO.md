@@ -43,7 +43,7 @@ Remplissez les informations demandées (nom d'utilisateur, email, mot de passe).
    - **Téléphone** : Numéro de téléphone
    - **Email** : Adresse email de l'école
    - **Site web** : (Optionnel) URL du site web
-   - **Année académique** : (ex: "2024-2025")
+   - **Année scolaire** : (ex: "2024-2025")
    - **Devise** : (ex: "CDF")
    - **Langue** : (ex: "fr")
    - **Actif** : Cochez cette case

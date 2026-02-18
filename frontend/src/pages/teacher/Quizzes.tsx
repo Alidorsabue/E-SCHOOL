@@ -15,7 +15,7 @@ const quizSchema = z.object({
   description: z.string().optional(),
   subject: z.union([z.number(), z.string()]).transform((v) => (isNaN(toNum(v)) ? 0 : toNum(v))).pipe(z.number().min(1, 'La matière est requise')),
   school_class: z.union([z.number(), z.string()]).transform((v) => (isNaN(toNum(v)) ? 0 : toNum(v))).pipe(z.number().min(1, 'La classe est requise')),
-  academic_year: z.string().min(1, "L'année académique est requise"),
+  academic_year: z.string().min(1, "L'année scolaire est requise"),
   start_date: z.string().min(1, 'La date de début est requise'),
   end_date: z.string().min(1, 'La date de fin est requise'),
   total_points: z.union([z.number(), z.string()]).transform((v) => (isNaN(toNum(v)) ? 20 : toNum(v))).pipe(z.number().min(0)),
@@ -305,7 +305,7 @@ export default function TeacherQuizzes() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Année académique *</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Année scolaire *</label>
                 <input {...register('academic_year')} className="input w-full" placeholder="2024-2025" />
               </div>
               <div>
@@ -503,7 +503,7 @@ export default function TeacherQuizzes() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année académique</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année scolaire</label>
                           <input {...register('academic_year')} className="input w-full" placeholder="2024-2025" />
                         </div>
                         <div className="md:col-span-2">

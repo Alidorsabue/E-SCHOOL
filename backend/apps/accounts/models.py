@@ -110,7 +110,7 @@ class Student(models.Model):
     school_class = models.ForeignKey('schools.SchoolClass', on_delete=models.SET_NULL, 
                                      null=True, blank=True, related_name='students', verbose_name="Classe")
     enrollment_date = models.DateField(verbose_name="Date d'inscription")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
     # Anciens élèves (sortie en année terminale ou autre)
     is_former_student = models.BooleanField(default=False, verbose_name="Ancien élève")

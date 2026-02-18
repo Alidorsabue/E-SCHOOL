@@ -23,7 +23,7 @@ class School(models.Model):
     website = models.URLField(null=True, blank=True, verbose_name="Site web")
     
     # Configuration
-    academic_year = models.CharField(max_length=20, default="2024-2025", verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, default="2024-2025", verbose_name="Année scolaire")
     currency = models.CharField(max_length=3, default="CDF", verbose_name="Devise")
     language = models.CharField(max_length=10, default="fr", verbose_name="Langue")
     
@@ -87,7 +87,7 @@ class SchoolClass(models.Model):
     grade = models.CharField(max_length=20, verbose_name="Classe")  # e.g., "1ère", "2ème", "6ème"
     section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True, related_name='classes', verbose_name="Section")
     capacity = models.IntegerField(default=40, verbose_name="Capacité")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     is_active = models.BooleanField(default=True, verbose_name="Actif")
     created_at = models.DateTimeField(auto_now_add=True)
     

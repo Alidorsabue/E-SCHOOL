@@ -17,7 +17,7 @@ const classSchema = z.object({
   section: z.number().optional().nullable(),
   titulaire: z.number().optional().nullable(),
   capacity: z.number().min(1, 'La capacité doit être supérieure à 0'),
-  academic_year: z.string().min(1, 'L\'année académique est requise'),
+  academic_year: z.string().min(1, 'L\'année scolaire est requise'),
 })
 
 type ClassForm = z.infer<typeof classSchema>
@@ -113,14 +113,14 @@ export default function AdminClasses() {
     return name.includes(query) || studentId.includes(query) || email.includes(query) || phone.includes(query)
   })
 
-  // Extraire les années académiques uniques pour le filtre
+  // Extraire les années scolaires uniques pour le filtre
   const academicYears: string[] = classes?.results 
     ? (Array.from(new Set(classes.results.map((cls: any) => cls.academic_year).filter((year: unknown): year is string => Boolean(year)))) as string[]).sort().reverse()
     : []
 
-  // Filtrer les classes selon la recherche et l'année académique
+  // Filtrer les classes selon la recherche et l'année scolaire
   const filteredClasses = classes?.results?.filter((cls: any) => {
-    // Filtre par année académique
+    // Filtre par année scolaire
     if (academicYearFilter && cls.academic_year !== academicYearFilter) {
       return false
     }
@@ -379,7 +379,7 @@ export default function AdminClasses() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Année académique <span className="text-red-500">*</span>
+                  Année scolaire <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register('academic_year')}
@@ -429,7 +429,7 @@ export default function AdminClasses() {
             />
           </div>
           
-          {/* Filtre par année académique */}
+          {/* Filtre par année scolaire */}
           <div className="relative min-w-[200px]">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
             <select
@@ -707,11 +707,11 @@ export default function AdminClasses() {
                   </div>
                 </Card>
 
-                {/* Informations académiques */}
+                {/* Informations scolaires */}
                 <Card className="p-4">
                   <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
                     <BookOpen className="w-5 h-5" />
-                    <span>Informations académiques</span>
+                    <span>Informations scolaires</span>
                   </h4>
                   <div className="space-y-3">
                     {selectedStudent.school_class && (
@@ -722,7 +722,7 @@ export default function AdminClasses() {
                     )}
                     {selectedStudent.academic_year && (
                       <div>
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Année académique:</span>
+                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Année scolaire:</span>
                         <p className="text-gray-900 dark:text-white">{selectedStudent.academic_year}</p>
                       </div>
                     )}

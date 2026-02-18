@@ -24,17 +24,20 @@ class UserModel {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final school = json['school'];
+    final String? schoolCode = (json['school_code'] as String?) ??
+        (school is Map ? (school['code'] as String?) : null);
     return UserModel(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      firstName: json['first_name'] ?? '',
-      lastName: json['last_name'] ?? '',
-      role: json['role'],
-      phone: json['phone'],
-      schoolCode: json['school_code'],
-      studentId: json['student_id'],
-      profilePicture: json['profile_picture'],
+      id: json['id'] as int,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      firstName: (json['first_name'] as String?) ?? '',
+      lastName: (json['last_name'] as String?) ?? '',
+      role: json['role'] as String,
+      phone: json['phone'] as String?,
+      schoolCode: schoolCode,
+      studentId: json['student_id'] as String?,
+      profilePicture: json['profile_picture'] as String?,
     );
   }
 

@@ -11,18 +11,19 @@ import { z } from 'zod'
 
 const enrollmentSchema = z.object({
   first_name: z.string().min(1, 'Le prénom est requis'),
-  middle_name: z.string().optional(),
   last_name: z.string().min(1, 'Le nom est requis'),
+  middle_name: z.string().optional(),
   date_of_birth: z.string().min(1, 'La date de naissance est requise'),
   gender: z.enum(['M', 'F'], { required_error: 'Le genre est requis' }),
   place_of_birth: z.string().min(1, 'Le lieu de naissance est requis'),
   phone: z.string().optional(),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   address: z.string().min(1, 'L\'adresse est requise'),
-  academic_year: z.string().min(1, 'L\'année académique est requise'),
+  academic_year: z.string().min(1, 'L\'année scolaire est requise'),
   requested_class: z.number().optional(),
   previous_school: z.string().optional(),
   parent_name: z.string().min(1, 'Le nom du parent est requis'),
+  mother_name: z.string().optional(),
   parent_phone: z.string().min(1, 'Le téléphone du parent est requis'),
   parent_email: z.string().email('Email invalide').optional().or(z.literal('')),
   parent_profession: z.string().optional(),
@@ -276,8 +277,8 @@ export default function AdminEnrollments() {
     const dateOfBirth = app.date_of_birth ? new Date(app.date_of_birth).toISOString().split('T')[0] : ''
     resetEdit({
       first_name: app.first_name || '',
-      middle_name: app.middle_name || '',
       last_name: app.last_name || '',
+      middle_name: app.middle_name || '',
       date_of_birth: dateOfBirth,
       gender: app.gender || 'M',
       place_of_birth: app.place_of_birth || '',
@@ -288,6 +289,7 @@ export default function AdminEnrollments() {
       requested_class: app.requested_class || undefined,
       previous_school: app.previous_school || '',
       parent_name: app.parent_name || '',
+      mother_name: app.mother_name || '',
       parent_phone: app.parent_phone || '',
       parent_email: app.parent_email || '',
       parent_profession: app.parent_profession || '',
@@ -460,19 +462,6 @@ export default function AdminEnrollments() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Postnom
-                </label>
-                <input
-                  {...register('middle_name')}
-                  className="input"
-                  placeholder="Postnom"
-                />
-                {errors.middle_name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.middle_name.message}</p>
-                )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nom <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -484,6 +473,20 @@ export default function AdminEnrollments() {
                   <p className="mt-1 text-sm text-red-600">{errors.last_name.message}</p>
                 )}
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Postnom
+                </label>
+                <input
+                  {...register('middle_name')}
+                  className="input"
+                  placeholder="Postnom"
+                />
+                {errors.middle_name && (
+                  <p className="mt-1 text-sm text-red-600">{errors.middle_name.message}</p>
+                )}
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Date de naissance <span className="text-red-500">*</span>
@@ -552,7 +555,7 @@ export default function AdminEnrollments() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Année académique <span className="text-red-500">*</span>
+                  Année scolaire <span className="text-red-500">*</span>
                 </label>
                 <input
                   {...register('academic_year')}
@@ -730,6 +733,19 @@ export default function AdminEnrollments() {
                   />
                   {errors.parent_name && (
                     <p className="mt-1 text-sm text-red-600">{errors.parent_name.message}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nom de la mère <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    {...register('mother_name')}
+                    className="input"
+                    placeholder="Nom complet"
+                  />
+                  {errors.mother_name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.mother_name.message}</p>
                   )}
                 </div>
                 <div>
@@ -1030,19 +1046,6 @@ export default function AdminEnrollments() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Postnom
-                    </label>
-                    <input
-                      {...registerEdit('middle_name')}
-                      className="input"
-                      placeholder="Postnom"
-                    />
-                    {errorsEdit.middle_name && (
-                      <p className="mt-1 text-sm text-red-600">{errorsEdit.middle_name.message}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nom <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1052,6 +1055,19 @@ export default function AdminEnrollments() {
                     />
                     {errorsEdit.last_name && (
                       <p className="mt-1 text-sm text-red-600">{errorsEdit.last_name.message}</p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Postnom
+                    </label>
+                    <input
+                      {...registerEdit('middle_name')}
+                      className="input"
+                      placeholder="Postnom"
+                    />
+                    {errorsEdit.middle_name && (
+                      <p className="mt-1 text-sm text-red-600">{errorsEdit.middle_name.message}</p>
                     )}
                   </div>
                   <div>
@@ -1122,7 +1138,7 @@ export default function AdminEnrollments() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Année académique <span className="text-red-500">*</span>
+                      Année scolaire <span className="text-red-500">*</span>
                     </label>
                     <input
                       {...registerEdit('academic_year')}
@@ -1294,6 +1310,19 @@ export default function AdminEnrollments() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Nom de la mère
+                      </label>
+                      <input
+                        {...registerEdit('mother_name')}
+                        className="input"
+                        placeholder="Nom complet"
+                      />
+                      {errorsEdit.mother_name && (
+                        <p className="mt-1 text-sm text-red-600">{errorsEdit.mother_name.message}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Téléphone du parent <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -1435,12 +1464,12 @@ export default function AdminEnrollments() {
                     </div>
                   </div>
 
-                  {/* Informations académiques */}
+                  {/* Informations scolaires */}
                   <div className="border-t pt-4">
-                    <h3 className="text-lg font-semibold mb-3 text-gray-900">Informations académiques</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-900">Informations scolaires</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-500">Année académique</p>
+                      <p className="text-sm text-gray-500">Année scolaire</p>
                       <p className="text-sm font-medium text-gray-900">
                         {app.academic_year || 'N/A'}
                       </p>
@@ -1468,6 +1497,12 @@ export default function AdminEnrollments() {
                       <p className="text-sm text-gray-500">Nom du parent</p>
                       <p className="text-sm font-medium text-gray-900">
                         {app.parent_name || 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Nom de la mère</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {app.mother_name || 'N/A'}
                       </p>
                     </div>
                     <div>

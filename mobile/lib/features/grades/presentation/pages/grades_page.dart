@@ -49,14 +49,28 @@ class _GradesPageState extends ConsumerState<GradesPage> {
 
   Future<void> _loadChildren() async {
     try {
-      // TODO: Charger les enfants depuis l'API
-      // Pour l'instant, simuler avec une liste vide
-      // final response = await ApiService().get('/auth/users/children/');
-      setState(() {
-        _children = []; // response.data as List<dynamic>;
-      });
-    } catch (e) {
-      // Gérer l'erreur
+      final response = await ApiService().get<dynamic>(
+        '/api/auth/students/',
+        useCache: false,
+      );
+      final data = response.data;
+      final list = data is List
+          ? data
+          : (data is Map && data['results'] != null)
+              ? (data['results'] as List)
+              : <dynamic>[];
+      final children = list is List<dynamic> ? list : List<dynamic>.from(list);
+      if (mounted) {
+        setState(() {
+          _children = children;
+          if (_children.isNotEmpty && _selectedChildId == null) {
+            final first = _children.first;
+            _selectedChildId = first is Map ? first['id'] as int? : null;
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _children = []);
     }
   }
 
@@ -74,15 +88,24 @@ class _GradesPageState extends ConsumerState<GradesPage> {
         queryParams = {'student': _selectedChildId};
       }
 
-      final response = await ApiService().get(
+      final response = await ApiService().get<dynamic>(
         '/api/academics/grades/',
         queryParameters: queryParams,
+        useCache: false,
       );
-      
-      setState(() {
-        _grades = response.data as List<dynamic>;
-        _isLoading = false;
-      });
+      final data = response.data;
+      final list = data is List
+          ? data
+          : (data is Map && data['results'] != null)
+              ? (data['results'] as List)
+              : <dynamic>[];
+      final grades = list is List<dynamic> ? list : List<dynamic>.from(list);
+      if (mounted) {
+        setState(() {
+          _grades = grades;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -121,9 +144,12 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                   prefixIcon: Icon(Icons.person),
                 ),
                 items: _children.map<DropdownMenuItem<int>>((child) {
+                  final c = child is Map ? child : <String, dynamic>{};
+                  final name = c['user_name'] ?? c['user']?['first_name'] ?? '';
+                  final cls = c['class_name'] ?? c['school_class']?['name'] ?? '';
                   return DropdownMenuItem<int>(
-                    value: child['id'] as int?,
-                    child: Text('${child['name']} - ${child['class'] ?? ''}'),
+                    value: c['id'] as int?,
+                    child: Text('$name${cls.isNotEmpty ? ' - $cls' : ''}'),
                   );
                 }).toList(),
                 onChanged: (int? value) {

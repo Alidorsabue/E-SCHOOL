@@ -16,12 +16,12 @@ class EnrollmentApplication(models.Model):
     ]
     
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='enrollments', verbose_name="École")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     
-    # Student information
+    # Student information (ordre : Prénom, Nom, Postnom)
     first_name = models.CharField(max_length=100, verbose_name="Prénom")
-    middle_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Postnom")
     last_name = models.CharField(max_length=100, verbose_name="Nom")
+    middle_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Postnom")
     date_of_birth = models.DateField(verbose_name="Date de naissance")
     gender = models.CharField(max_length=10, choices=[('M', 'Masculin'), ('F', 'Féminin')], verbose_name="Genre")
     place_of_birth = models.CharField(max_length=200, verbose_name="Lieu de naissance")
@@ -38,6 +38,7 @@ class EnrollmentApplication(models.Model):
     
     # Parent/Guardian information
     parent_name = models.CharField(max_length=200, verbose_name="Nom du parent/tuteur")
+    mother_name = models.CharField(max_length=200, null=True, blank=True, verbose_name="Nom de la mère")
     parent_phone = models.CharField(max_length=20, verbose_name="Téléphone du parent")
     parent_email = models.EmailField(null=True, blank=True, verbose_name="Email du parent")
     parent_profession = models.CharField(max_length=100, null=True, blank=True, verbose_name="Profession du parent")
@@ -83,7 +84,7 @@ class ReEnrollment(models.Model):
     ]
     
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='reenrollments', verbose_name="Élève")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     school_class = models.ForeignKey(SchoolClass, on_delete=models.SET_NULL, null=True, 
                                     related_name='reenrollments', verbose_name="Classe")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name="Statut")

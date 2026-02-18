@@ -24,36 +24,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      print('🚀 [LoginPage] Validation OK, démarrage du login...');
-      final username = _usernameController.text.trim();
-      final password = _passwordController.text;
-      
-      print('🚀 [LoginPage] Username: $username');
-      
-      final success = await ref.read(authProvider.notifier).login(username, password);
+    if (!_formKey.currentState!.validate()) return;
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final notifier = ref.read(authProvider.notifier);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final navContext = context;
 
-      print('🚀 [LoginPage] Résultat du login: success=$success');
-      print('🚀 [LoginPage] État auth: isAuthenticated=${ref.read(authProvider).isAuthenticated}');
+    final (success, errorMessage) = await notifier.login(username, password);
 
-      if (!success && mounted) {
-        final error = ref.read(authProvider).error ?? 'Erreur de connexion';
-        print('❌ [LoginPage] Erreur affichée à l\'utilisateur: $error');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } else if (success && mounted) {
-        print('✅ [LoginPage] Login réussi, attente de la redirection...');
-        // Attendre un peu pour que le router détecte le changement
-        await Future.delayed(const Duration(milliseconds: 200));
-        if (mounted && ref.read(authProvider).isAuthenticated) {
-          print('✅ [LoginPage] Redirection vers /dashboard');
-          context.go('/dashboard');
-        }
-      }
+    if (!mounted) return;
+    if (!success) {
+      final message = errorMessage ?? 'Erreur de connexion';
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    await Future.delayed(const Duration(milliseconds: 200));
+    if (!mounted) return;
+    if (ref.read(authProvider).isAuthenticated) {
+      navContext.go('/dashboard');
     }
   }
 

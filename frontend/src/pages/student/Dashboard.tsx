@@ -66,7 +66,7 @@ export default function StudentDashboard() {
 
       {/* Infos classe, année, titulaire, moyenne */}
       {dashboardData && (
-        <Card className="p-6 mb-6">
+        <Card className="p-4 mb-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <User className="w-5 h-5" />
             Mes informations
@@ -82,7 +82,7 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700/60 rounded-lg">
               <Calendar className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               <div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">Année académique</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Année scolaire</p>
                 <p className="font-medium text-gray-900 dark:text-gray-100">{dashboardData.identity?.school_class_academic_year || dashboardData.identity?.academic_year || '—'}</p>
               </div>
             </div>

@@ -17,6 +17,8 @@ import '../../features/enrollment/presentation/pages/enrollment_page.dart';
 import '../../features/meetings/presentation/pages/meetings_page.dart';
 import '../../features/payments/presentation/pages/payments_page.dart';
 import '../../features/tutoring/presentation/pages/tutoring_page.dart';
+import '../../features/discipline/presentation/pages/discipline_page.dart';
+import '../../features/communication/presentation/pages/communication_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../providers/auth_provider.dart';
 
@@ -45,24 +47,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isAuthenticated && userRole != null) {
         final path = state.matchedLocation;
         
-        // Routes spécifiques aux élèves
+        // Élève : pas d'accès inscription, réunions, paiements, encadrement (réservés aux parents)
         if (userRole == 'STUDENT') {
-          if (path.startsWith('/enrollment') || 
-              path.startsWith('/meetings') || 
-              path.startsWith('/payments') || 
-              path.startsWith('/tutoring')) {
-            return '/dashboard'; // Rediriger vers le dashboard si accès non autorisé
+          if (path.startsWith('/enrollment') || path.startsWith('/meetings') ||
+              path.startsWith('/payments') || path.startsWith('/tutoring')) {
+            return '/dashboard';
           }
         }
-        
-        // Routes spécifiques aux parents
+        // Parent : pas d'accès cours, devoirs, examens (réservés aux élèves)
         if (userRole == 'PARENT') {
-          if (path.startsWith('/courses') || 
-              path.startsWith('/assignments') || 
-              path.startsWith('/exams')) {
-            return '/dashboard'; // Rediriger vers le dashboard si accès non autorisé
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || path.startsWith('/exams')) {
+            return '/dashboard';
           }
         }
+        // Discipline et Communication : accessibles Parent et Élève (aligné web)
       }
       
       return null;
@@ -136,6 +134,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/tutoring',
         builder: (context, state) => const TutoringPage(),
+      ),
+      GoRoute(
+        path: '/discipline',
+        builder: (context, state) => const DisciplinePage(),
+      ),
+      GoRoute(
+        path: '/communication',
+        builder: (context, state) => const CommunicationPage(),
       ),
       // Routes communes
       GoRoute(

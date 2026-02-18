@@ -98,7 +98,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]  # Support pour l'upload de fichiers
     filterset_fields = ['school', 'status', 'academic_year', 'requested_class']
-    search_fields = ['first_name', 'last_name', 'parent_name', 'parent_phone', 'phone']
+    search_fields = ['first_name', 'last_name', 'middle_name', 'parent_name', 'mother_name', 'parent_phone', 'phone']
     
     def get_queryset(self):
         try:

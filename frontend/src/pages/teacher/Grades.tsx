@@ -330,7 +330,7 @@ export default function TeacherGrades() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année académique</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Année scolaire</label>
             <input
               type="text"
               list="academic-years-datalist-grades"
@@ -374,7 +374,7 @@ export default function TeacherGrades() {
           <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
             {classSubjectsList.length === 0
               ? 'Aucune matière définie pour cette classe. Le titulaire peut les ajouter dans « Matières de la classe » (fiche de la classe en admin).'
-              : 'Sélectionnez l\'année académique et la matière pour saisir les notes.'}
+              : 'Sélectionnez l\'année scolaire et la matière pour saisir les notes.'}
           </p>
         )}
       </Card>

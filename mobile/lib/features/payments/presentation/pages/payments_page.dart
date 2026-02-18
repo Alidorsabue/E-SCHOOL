@@ -29,19 +29,27 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
     });
 
     try {
-      final response = await ApiService().get('/api/payments/payments/');
-      final allPayments = response.data as List<dynamic>;
+      final api = ApiService();
+      final response = await api.get<dynamic>('/api/payments/payments/', useCache: false);
+      final data = response.data;
+      final List<dynamic> allPayments = data is List
+          ? data
+          : (data is Map && data['results'] != null)
+              ? (data['results'] as List)
+              : [];
+      final rawList = allPayments is List<dynamic> ? allPayments : List<dynamic>.from(allPayments);
       setState(() {
-        _payments = allPayments.where((p) => p['status'] == 'completed').toList();
-        _pendingPayments = allPayments.where((p) => p['status'] == 'pending').toList();
+        _payments = rawList.where((p) => _statusEqual(p['status'], 'COMPLETED')).toList();
+        _pendingPayments = rawList.where((p) => _statusEqual(p['status'], 'PENDING')).toList();
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() { _isLoading = false; });
     }
   }
+
+  bool _statusEqual(dynamic a, String b) =>
+      a != null && (a.toString().toUpperCase() == b.toUpperCase());
 
   Future<void> _processPayment(Map<String, dynamic> payment) async {
     // Ouvrir l'URL de paiement
@@ -57,13 +65,27 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
     }
   }
 
+  String _paymentTitle(dynamic payment) {
+    final fp = payment['fee_payments'];
+    if (fp is List && fp.isNotEmpty) {
+      final first = fp.first;
+      if (first is Map && first['fee_type_name'] != null) return first['fee_type_name'].toString();
+    }
+    final ft = payment['fee_type'];
+    if (ft is Map && ft['name'] != null) return ft['name'].toString();
+    return payment['payment_id']?.toString() ?? 'Paiement';
+  }
+
   Color _getStatusColor(String? status) {
-    switch (status?.toLowerCase()) {
-      case 'completed':
+    switch (status?.toUpperCase()) {
+      case 'COMPLETED':
         return Colors.green;
-      case 'pending':
+      case 'PENDING':
+      case 'PROCESSING':
         return Colors.orange;
-      case 'failed':
+      case 'FAILED':
+      case 'CANCELLED':
+      case 'REFUNDED':
         return Colors.red;
       default:
         return Colors.grey;
@@ -106,14 +128,14 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                                     backgroundColor: _getStatusColor(payment['status']),
                                     child: const Icon(Icons.payment, color: Colors.white),
                                   ),
-                                  title: Text(payment['fee_type']?['name'] ?? 'Paiement'),
+                                  title: Text(_paymentTitle(payment)),
                                   subtitle: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Montant: ${payment['amount']} ${payment['currency'] ?? 'FCFA'}'),
+                                      Text('Montant: ${payment['amount']} ${payment['currency'] ?? 'CDF'}'),
                                       if (payment['due_date'] != null)
                                         Text(
-                                          'Échéance: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(payment['due_date']))}',
+                                          'Échéance: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(payment['due_date'].toString()))}',
                                         ),
                                     ],
                                   ),
@@ -144,14 +166,14 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                                     backgroundColor: _getStatusColor(payment['status']),
                                     child: const Icon(Icons.check, color: Colors.white),
                                   ),
-                                  title: Text(payment['fee_type']?['name'] ?? 'Paiement'),
+                                  title: Text(_paymentTitle(payment)),
                                   subtitle: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Montant: ${payment['amount']} ${payment['currency'] ?? 'FCFA'}'),
-                                      if (payment['paid_at'] != null)
+                                      Text('Montant: ${payment['amount']} ${payment['currency'] ?? 'CDF'}'),
+                                      if (payment['payment_date'] != null)
                                         Text(
-                                          'Payé le: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(payment['paid_at']))}',
+                                          'Payé le: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(payment['payment_date'].toString()))}',
                                         ),
                                     ],
                                   ),

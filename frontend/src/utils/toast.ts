@@ -238,7 +238,7 @@ const translateFieldName = (field: string): string => {
     name: 'Nom',
     code: 'Code',
     capacity: 'Capacité',
-    academic_year: 'Année académique',
+    academic_year: 'Année scolaire',
     requested_class: 'Classe demandée',
     employee_id: 'Matricule',
     specialization: 'Spécialisation',

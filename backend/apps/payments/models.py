@@ -89,7 +89,7 @@ class FeePayment(models.Model):
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='fee_payments', verbose_name="Paiement")
     fee_type = models.ForeignKey(FeeType, on_delete=models.CASCADE, related_name='payments', verbose_name="Type de frais")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Montant")
-    academic_year = models.CharField(max_length=20, verbose_name="Année académique")
+    academic_year = models.CharField(max_length=20, verbose_name="Année scolaire")
     term = models.CharField(max_length=2, null=True, blank=True, verbose_name="Trimestre")
     
     class Meta:

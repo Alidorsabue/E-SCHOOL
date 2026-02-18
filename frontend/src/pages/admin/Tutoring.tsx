@@ -415,9 +415,9 @@ export default function AdminTutoring() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Progrès académique</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Progrès scolaire</label>
                 <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700/50 p-3 rounded mt-1 whitespace-pre-line">
-                  {selectedReport.academic_progress || 'Aucun progrès académique enregistré'}
+                  {selectedReport.academic_progress || 'Aucun progrès scolaire enregistré'}
                 </p>
               </div>
               {selectedReport.behavior_observations && (

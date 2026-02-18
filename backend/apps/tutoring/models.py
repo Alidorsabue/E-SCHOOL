@@ -92,7 +92,7 @@ class TutoringReport(models.Model):
     report_period_end = models.DateField(verbose_name="Fin de période")
     
     # Report content
-    academic_progress = models.TextField(verbose_name="Progrès académique")
+    academic_progress = models.TextField(verbose_name="Progrès scolaire")
     behavior_observations = models.TextField(null=True, blank=True, verbose_name="Observations comportementales")
     recommendations = models.TextField(verbose_name="Recommandations")
     parent_feedback = models.TextField(null=True, blank=True, verbose_name="Retour du parent")

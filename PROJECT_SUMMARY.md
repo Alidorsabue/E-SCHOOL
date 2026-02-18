@@ -19,7 +19,7 @@
 ### 3. **Inscription & Réinscription**
 - ✅ Demandes d'inscription avec workflow d'approbation
 - ✅ Création automatique d'utilisateur et élève lors de l'approbation
-- ✅ Système de réinscription par année académique
+- ✅ Système de réinscription par année scolaire
 
 ### 4. **Suivi Scolaire**
 - ✅ Gestion des notes (contrôle continu + examens)

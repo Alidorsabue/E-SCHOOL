@@ -174,14 +174,14 @@ class SchoolClassViewSet(viewsets.ModelViewSet):
         parts = ac.split('-')
         if len(parts) != 2:
             return Response(
-                {'error': f"Format d'année académique invalide: « {ac} ». Attendu: 2025-2026."},
+                {'error': f"Format d'année scolaire invalide: « {ac} ». Attendu: 2025-2026."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
             next_year = f"{int(parts[0]) + 1}-{int(parts[1]) + 1}"
         except ValueError:
             return Response(
-                {'error': f"Année académique invalide: « {ac} »."},
+                {'error': f"Année scolaire invalide: « {ac} »."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

@@ -31,7 +31,7 @@ def generate_tutoring_report_pdf(report):
     
     # Academic Progress
     p.setFont("Helvetica-Bold", 12)
-    p.drawString(100, y, "Progrès Académique:")
+    p.drawString(100, y, "Progrès Scolaire:")
     y -= 20
     p.setFont("Helvetica", 10)
     lines = report.academic_progress.split('\n')

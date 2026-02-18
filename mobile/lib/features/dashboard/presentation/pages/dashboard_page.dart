@@ -2,12 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/network/api_service.dart';
 
-class DashboardPage extends ConsumerWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends ConsumerState<DashboardPage> {
+  List<dynamic> _childrenDashboard = [];
+  bool _childrenLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadChildrenIfParent();
+  }
+
+  Future<void> _loadChildrenIfParent() async {
+    final user = ref.read(authProvider).user;
+    if (user?.isParent != true) return;
+    setState(() => _childrenLoading = true);
+    try {
+      final api = ApiService();
+      final response = await api.get(
+        '/api/auth/students/parent_dashboard/',
+        useCache: false,
+      );
+      final data = response.data;
+      final list = data is List
+          ? data
+          : (data is Map && data['results'] != null
+              ? data['results'] as List
+              : <dynamic>[]);
+      if (mounted) {
+        setState(() {
+          _childrenDashboard = list is List<dynamic> ? list : List<dynamic>.from(list);
+          _childrenLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() { _childrenDashboard = []; _childrenLoading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final isStudent = user?.role == 'STUDENT';
     final isParent = user?.role == 'PARENT';
@@ -33,6 +75,7 @@ class DashboardPage extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(authProvider.notifier).refreshUser();
+          await _loadChildrenIfParent();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -116,41 +159,65 @@ class DashboardPage extends ConsumerWidget {
                       onTap: () => context.push('/grades'),
                     ),
                     _DashboardCard(
-                      icon: Icons.download,
-                      title: 'Téléchargements',
+                      icon: Icons.gavel,
+                      title: 'Fiches de discipline',
+                      color: Colors.brown,
+                      onTap: () => context.push('/discipline'),
+                    ),
+                    _DashboardCard(
+                      icon: Icons.message,
+                      title: 'Communication',
                       color: Colors.teal,
-                      onTap: () {
-                        // TODO: Ouvrir les téléchargements
-                      },
+                      onTap: () => context.push('/communication'),
                     ),
                   ],
                 ),
               ] else if (isParent) ...[
                 // Dashboard Parent
-                // Enfants
                 Text(
                   'Mes Enfants',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
-                // TODO: Charger et afficher les enfants
-                Card(
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.person),
+                if (_childrenLoading)
+                  const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                else if (_childrenDashboard.isEmpty)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Aucun enfant inscrit',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ),
-                    title: const Text('Nom de l\'enfant'),
-                    subtitle: const Text('Classe'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      // TODO: Naviguer vers les détails de l'enfant
-                    },
-                  ),
-                ),
+                  )
+                else
+                  ...(_childrenDashboard.map<Widget>((item) {
+                    final identity = item is Map ? (item['identity'] as Map?) ?? item : <String, dynamic>{};
+                    final userData = identity['user'];
+                    final userName = userData is Map
+                        ? '${userData['first_name'] ?? ''} ${userData['last_name'] ?? ''}'.trim()
+                        : (identity['user_name'] as String? ?? '');
+                    final className = identity['class_name'] as String? ?? identity['school_class_academic_year'] as String? ?? '';
+                    final studentId = identity['id'];
+                    return Card(
+                      child: ListTile(
+                        leading: const CircleAvatar(
+                          child: Icon(Icons.person),
+                        ),
+                        title: Text(userName.isEmpty ? 'Enfant' : userName),
+                        subtitle: Text(className.isEmpty ? 'Classe' : className),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          if (studentId != null) context.push('/students/$studentId');
+                        },
+                      ),
+                    );
+                  })),
                 const SizedBox(height: 24),
-                // Actions rapides
+                // Modules alignés avec le web (ordre = sidebar parent)
                 Text(
-                  'Actions rapides',
+                  'Modules',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 16),
@@ -163,14 +230,8 @@ class DashboardPage extends ConsumerWidget {
                   childAspectRatio: 1.2,
                   children: [
                     _DashboardCard(
-                      icon: Icons.person_add,
-                      title: 'Inscription',
-                      color: Colors.blue,
-                      onTap: () => context.push('/enrollment'),
-                    ),
-                    _DashboardCard(
                       icon: Icons.grade,
-                      title: 'Suivi Scolaire',
+                      title: 'Notes',
                       color: Colors.orange,
                       onTap: () => context.push('/grades'),
                     ),
@@ -187,16 +248,34 @@ class DashboardPage extends ConsumerWidget {
                       onTap: () => context.push('/payments'),
                     ),
                     _DashboardCard(
+                      icon: Icons.library_books,
+                      title: 'Bibliothèque',
+                      color: Colors.indigo,
+                      onTap: () => context.push('/library'),
+                    ),
+                    _DashboardCard(
                       icon: Icons.school,
                       title: 'Encadrement',
                       color: Colors.teal,
                       onTap: () => context.push('/tutoring'),
                     ),
                     _DashboardCard(
-                      icon: Icons.library_books,
-                      title: 'Bibliothèque',
-                      color: Colors.indigo,
-                      onTap: () => context.push('/library'),
+                      icon: Icons.gavel,
+                      title: 'Fiches de discipline',
+                      color: Colors.brown,
+                      onTap: () => context.push('/discipline'),
+                    ),
+                    _DashboardCard(
+                      icon: Icons.message,
+                      title: 'Communication',
+                      color: Colors.cyan,
+                      onTap: () => context.push('/communication'),
+                    ),
+                    _DashboardCard(
+                      icon: Icons.person_add,
+                      title: 'Inscription',
+                      color: Colors.blue,
+                      onTap: () => context.push('/enrollment'),
                     ),
                   ],
                 ),
@@ -257,7 +336,7 @@ class DashboardPage extends ConsumerWidget {
         },
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home), label: 'Accueil'),
-          NavigationDestination(icon: Icon(Icons.grade), label: 'Suivi'),
+          NavigationDestination(icon: Icon(Icons.grade), label: 'Notes'),
           NavigationDestination(icon: Icon(Icons.event), label: 'Réunions'),
           NavigationDestination(icon: Icon(Icons.payment), label: 'Paiements'),
         ],

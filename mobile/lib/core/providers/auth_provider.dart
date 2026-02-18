@@ -54,7 +54,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<bool> login(String username, String password) async {
+  /// Retourne (success, messageErreur). En cas d'échec, [messageErreur] contient le message à afficher.
+  Future<(bool, String?)> login(String username, String password) async {
     print('🔑 [AuthProvider] Début du login pour: $username');
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -72,17 +73,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
         isAuthenticated: true,
         user: result.user,
         isLoading: false,
+        error: null,
       );
       print('✅ [AuthProvider] État mis à jour: isAuthenticated=${state.isAuthenticated}, user=${state.user?.email ?? state.user?.username}');
-      return true;
+      return (true, null);
     } catch (e, stackTrace) {
       print('❌ [AuthProvider] Erreur lors du login: $e');
       print('📚 [AuthProvider] Stack trace: $stackTrace');
+      final message = e.toString().replaceFirst(RegExp(r'^Exception:?\s*'), '');
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: message,
       );
-      return false;
+      return (false, message);
     }
   }
 

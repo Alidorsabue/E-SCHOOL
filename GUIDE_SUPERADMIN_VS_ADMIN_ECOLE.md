@@ -45,7 +45,7 @@ Ce document explique la distinction entre le **Superadmin** et l'**Admin d'Écol
 **Utilisation** :
 - Gestion quotidienne d'une école spécifique
 - Création et gestion des utilisateurs de son école
-- Gestion académique (classes, matières, notes)
+- Gestion scolaire (classes, matières, notes)
 - Gestion des inscriptions
 
 ## 📋 Tableau Comparatif

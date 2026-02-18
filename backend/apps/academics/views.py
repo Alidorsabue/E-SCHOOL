@@ -45,7 +45,7 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def available(self, request):
         """
-        Toutes les années académiques utilisées : AcademicYear + SchoolClass + GradeBulletin.
+        Toutes les années scolaires utilisées : AcademicYear + SchoolClass + GradeBulletin.
         Réponse : { years: ["2026-2027", "2025-2026", ...], current: "2025-2026" | null }.
         Si la liste est vide, le frontend garde une saisie libre.
         """
@@ -335,7 +335,7 @@ class GradeBulletinViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def class_ranking(self, request):
         """
-        Classement des élèves d'une classe pour une année académique.
+        Classement des élèves d'une classe pour une année scolaire.
         GET ?school_class=<id>&academic_year=<année>
         Réservé au titulaire de la classe ou à l'admin.
         """

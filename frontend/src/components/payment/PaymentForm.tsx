@@ -238,7 +238,7 @@ export default function PaymentForm({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Année académique
+                Année scolaire
               </label>
               <input
                 type="text"
