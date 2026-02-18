@@ -5,10 +5,14 @@
 En production, **définir une URL secrète** pour l’admin Django dans les variables Railway :
 
 - **Variable :** `DJANGO_ADMIN_URL`
-- **Exemple :** `secret-admin-xyz123` (choisir une valeur longue et imprévisible)
-- **Effet :** l’admin n’est plus à `/admin/` mais à `https://votre-backend.up.railway.app/secret-admin-xyz123/`
+- **Valeur :** uniquement le segment d’URL, **sans** slash ni espace (ex. `africa-admin-xyw` ou `secret-admin-xyz123`)
+- **URL finale :** toujours **avec** un slash à la fin → `https://votre-backend.up.railway.app/africa-admin-xyw/`
 
-Sans cette variable, l’admin reste à `/admin/` (comportement par défaut).
+**Important :**
+- Utiliser l’URL **avec** le slash final : `https://.../africa-admin-xyw/` (sans slash, redirection automatique).
+- Dans Railway → projet → service backend → **Variables** : ajouter `DJANGO_ADMIN_URL` = `africa-admin-xyw` (pas de guillemets).
+- **Redéployer** après avoir ajouté ou modifié la variable (sinon l’ancienne valeur ou `admin` reste utilisée).
+- Si ça ne marche pas : tester `https://.../admin/` ; si `/admin/` fonctionne, la variable n’est pas lue (vérifier le nom et redéployer).
 
 ## 2. Protection force brute (django-axes)
 

@@ -241,10 +241,11 @@ AUTHENTICATION_BACKENDS = [
 # django-axes : limitation des tentatives de connexion (admin Django)
 AXES_FAILURE_LIMIT = 5  # 5 échecs = blocage
 AXES_COOLOFF_TIME = 1   # 1 heure de blocage
-AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP = True  # bloquer par couple (utilisateur + IP)
+# Paramètres de verrouillage : par couple (utilisateur + IP) - remplace AXES_LOCK_OUT_BY_COMBINATION_USER_AND_IP
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 AXES_ONLY_ADMIN_SITE = True  # uniquement sur l'admin Django (pas sur l'API JWT)
 AXES_ENABLE_ACCESS_FAILURE_LOG = True  # log des échecs
-AXES_USE_USER_AGENT = False  # ne pas inclure le User-Agent dans la clé de blocage (plus simple)
+# Note: AXES_USE_USER_AGENT est déprécié, supprimé (ne pas inclure 'user_agent' dans AXES_LOCKOUT_PARAMETERS)
 
 # REST Framework
 REST_FRAMEWORK = {

@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
@@ -26,8 +27,16 @@ schema_view = get_schema_view(
 # URL de l'admin personnalisée (voir settings.DJANGO_ADMIN_URL, ex. secret-admin-xyz en prod)
 _admin_path = getattr(settings, 'DJANGO_ADMIN_URL', 'admin').strip().strip('/') or 'admin'
 
+def admin_redirect(request):
+    """Redirection vers l'admin avec slash final"""
+    from django.shortcuts import redirect
+    return redirect(f'/{_admin_path}/', permanent=True)
+
 urlpatterns = [
+    # Admin : avec slash final (obligatoire pour Django admin)
     path(f'{_admin_path}/', admin.site.urls),
+    # Redirection sans slash → avec slash (ex. /africa-admin-xyw → /africa-admin-xyw/)
+    path(_admin_path, admin_redirect),
     
     # API Documentation
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
