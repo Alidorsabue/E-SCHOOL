@@ -63,7 +63,7 @@ class ApiService {
       if (refreshToken == null) return false;
       
       final response = await _dio.post(
-        '/auth/token/refresh/',
+        '/api/auth/token/refresh/',
         data: {'refresh': refreshToken},
       );
       
@@ -151,8 +151,12 @@ class ApiService {
     dynamic data,
     Map<String, dynamic>? queryParameters,
   }) async {
+    print('🌐 [ApiService] POST ${_dio.options.baseUrl}$path');
+    print('🌐 [ApiService] Data: $data');
+    
     final isConnected = await ConnectivityService.isConnected();
     if (!isConnected) {
+      print('❌ [ApiService] Pas de connexion internet');
       throw DioException(
         requestOptions: RequestOptions(path: path),
         error: 'No internet connection',
@@ -160,11 +164,25 @@ class ApiService {
       );
     }
     
-    return await _dio.post<T>(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-    );
+    try {
+      final response = await _dio.post<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+      );
+      print('✅ [ApiService] Réponse ${response.statusCode}: ${response.data}');
+      return response;
+    } catch (e) {
+      if (e is DioException) {
+        print('❌ [ApiService] Erreur Dio: ${e.type}');
+        print('❌ [ApiService] Status: ${e.response?.statusCode}');
+        print('❌ [ApiService] Message: ${e.response?.data}');
+        print('❌ [ApiService] Error: ${e.message}');
+      } else {
+        print('❌ [ApiService] Erreur: $e');
+      }
+      rethrow;
+    }
   }
   
   Future<Response<T>> put<T>(

@@ -90,7 +90,57 @@ Une fois les domaines générés :
 
 ---
 
-## Étape 7 : (Optionnel) Redis et Celery
+## Étape 7 : Créer le premier administrateur (base vide)
+
+Après le premier déploiement, la base est vide. Il faut créer un admin et une école :
+
+### Option A : Via les variables d'environnement (recommandé)
+
+1. Dans le service **Backend** → **Variables**, ajoutez temporairement :
+   - `ADMIN_USERNAME` : `admin` (ou autre)
+   - `ADMIN_EMAIL` : `admin@eschool.rdc` (ou votre email)
+   - `ADMIN_PASSWORD` : **votre mot de passe** (obligatoire)
+   - `SCHOOL_NAME` : (optionnel) nom de l'école
+   - `SCHOOL_CODE` : (optionnel) code, ex: `DEFAULT`
+
+2. Installez le CLI Railway et lancez :
+   ```bash
+   railway link   # lier au projet
+   railway run python manage.py seed_initial
+   ```
+   Ou depuis le dossier backend du projet :
+   ```bash
+   cd backend
+   railway run python manage.py seed_initial
+   ```
+
+3. Une fois l'admin créé, vous pouvez supprimer `ADMIN_PASSWORD` des variables (recommandé pour la sécurité).
+
+### Option B : Sans CLI, via le dashboard Railway
+
+1. Allez dans le service **Backend**.
+2. Onglet **Settings** → section **Deploy**.
+3. Cherchez « Custom Start Command » ou « One-off command » (selon l’interface).
+4. Ou utilisez l’onglet **Shell/Console** s’il existe, et exécutez :
+   ```bash
+   python manage.py seed_initial
+   ```
+   (après avoir défini `ADMIN_PASSWORD` dans les variables)
+
+### Option C : En local avec DATABASE_URL Railway
+
+1. Copiez la `DATABASE_URL` depuis les variables Railway.
+2. En local : `cd backend`, puis `set DATABASE_URL=...` (Windows) ou `export DATABASE_URL=...` (Mac/Linux).
+3. Définissez aussi `ADMIN_PASSWORD`.
+4. Exécutez : `python manage.py seed_initial`
+
+**Identifiants par défaut** (si vous gardez les valeurs par défaut) :
+- Utilisateur : `admin`
+- Mot de passe : celui défini dans `ADMIN_PASSWORD`
+
+---
+
+## Étape 8 : (Optionnel) Redis et Celery
 
 Si vous utilisez Celery (tâches asynchrones, envoi de mails, etc.) :
 
@@ -148,6 +198,7 @@ VITE_API_URL=https://votre-backend.up.railway.app/api
 ## Dépannage
 
 - **Erreur 502** : Vérifier que Gunicorn écoute sur `0.0.0.0:$PORT` (déjà configuré dans le Procfile).
-- **Erreurs CORS** : Vérifier que `CORS_ALLOWED_ORIGINS` contient l’URL exacte du frontend (protocole et domaine).
+- **Erreurs CORS** : Vérifier que `CORS_ALLOWED_ORIGINS` contient l’URL exacte du frontend (protocole et domaine, sans slash final).
 - **Migration échouée** : Les migrations sont exécutées automatiquement au démarrage via le Procfile.
 - **Static files** : WhiteNoise sert les fichiers statiques Django. Vérifier que `collectstatic` s’exécute bien (intégré au Procfile).
+- **Connexion impossible / base vide** : Créer un admin avec `python manage.py seed_initial` (voir Étape 7).

@@ -29,7 +29,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
     });
 
     try {
-      final response = await ApiService().get('/payments/payments/');
+      final response = await ApiService().get('/api/payments/payments/');
       final allPayments = response.data as List<dynamic>;
       setState(() {
         _payments = allPayments.where((p) => p['status'] == 'completed').toList();

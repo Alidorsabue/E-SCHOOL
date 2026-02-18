@@ -42,7 +42,7 @@ class _CoursesPageState extends ConsumerState<CoursesPage> {
       }
 
       // Charger depuis l'API
-      final response = await ApiService().get('/elearning/courses/', useCache: true);
+      final response = await ApiService().get('/api/elearning/courses/', useCache: true);
       setState(() {
         _courses = response.data as List<dynamic>;
         _isLoading = false;

@@ -36,7 +36,7 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
     });
 
     try {
-      final response = await ApiService().get('/library/books/${widget.bookId}/');
+      final response = await ApiService().get('/api/library/books/${widget.bookId}/');
       setState(() {
         _book = response.data as Map<String, dynamic>;
         _isLoading = false;

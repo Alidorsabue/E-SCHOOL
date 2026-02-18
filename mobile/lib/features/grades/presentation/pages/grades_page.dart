@@ -75,7 +75,7 @@ class _GradesPageState extends ConsumerState<GradesPage> {
       }
 
       final response = await ApiService().get(
-        '/academics/grades/',
+        '/api/academics/grades/',
         queryParameters: queryParams,
       );
       
@@ -120,13 +120,13 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                   labelText: 'Sélectionner un enfant',
                   prefixIcon: Icon(Icons.person),
                 ),
-                items: _children.map((child) {
-                  return DropdownMenuItem(
-                    value: child['id'],
+                items: _children.map<DropdownMenuItem<int>>((child) {
+                  return DropdownMenuItem<int>(
+                    value: child['id'] as int?,
                     child: Text('${child['name']} - ${child['class'] ?? ''}'),
                   );
                 }).toList(),
-                onChanged: (value) {
+                onChanged: (int? value) {
                   setState(() {
                     _selectedChildId = value;
                   });

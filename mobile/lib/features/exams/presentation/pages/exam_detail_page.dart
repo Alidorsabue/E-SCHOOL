@@ -29,7 +29,7 @@ class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
     });
 
     try {
-      final response = await ApiService().get('/elearning/quizzes/${widget.examId}/');
+      final response = await ApiService().get('/api/elearning/quizzes/${widget.examId}/');
       setState(() {
         _exam = response.data as Map<String, dynamic>;
         _isLoading = false;
@@ -43,8 +43,8 @@ class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
 
   Future<void> _startExam() async {
     try {
-      final response = await ApiService().post('/elearning/quiz-attempts/start/', data: {
-        'quiz_id': widget.examId,
+      final response = await ApiService().post('/api/elearning/quiz-attempts/start/', data: {
+        'quiz': widget.examId,
       });
 
       // TODO: Naviguer vers l'écran de l'examen

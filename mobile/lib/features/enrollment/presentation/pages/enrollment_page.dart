@@ -50,7 +50,7 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
 
   Future<void> _loadSchools() async {
     try {
-      final response = await ApiService().get('/schools/');
+      final response = await ApiService().get('/api/schools/');
       setState(() {
         _schools = response.data as List<dynamic>;
       });
@@ -61,7 +61,7 @@ class _EnrollmentPageState extends ConsumerState<EnrollmentPage> {
 
   Future<void> _loadClasses(String schoolId) async {
     try {
-      final response = await ApiService().get('/schools/classes/', queryParameters: {
+      final response = await ApiService().get('/api/schools/classes/', queryParameters: {
         'school': schoolId,
       });
       setState(() {

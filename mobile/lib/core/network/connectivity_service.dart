@@ -4,32 +4,32 @@ class ConnectivityService {
   static final ConnectivityService _instance = ConnectivityService._internal();
   factory ConnectivityService() => _instance;
   ConnectivityService._internal();
-  
+
   final _connectivity = Connectivity();
-  ConnectivityResult _currentResult = ConnectivityResult.none;
-  
+  List<ConnectivityResult> _currentResults = [ConnectivityResult.none];
+
   Future<void> init() async {
-    _currentResult = await _connectivity.checkConnectivity();
-    _connectivity.onConnectivityChanged.listen((result) {
-      _currentResult = result;
+    _currentResults = await _connectivity.checkConnectivity();
+    _connectivity.onConnectivityChanged.listen((results) {
+      _currentResults = results;
     });
   }
-  
+
   static Future<bool> isConnected() async {
     final instance = ConnectivityService();
-    final result = await instance._connectivity.checkConnectivity();
-    return result != ConnectivityResult.none;
+    final results = await instance._connectivity.checkConnectivity();
+    return results.any((r) => r != ConnectivityResult.none);
   }
-  
-  static Stream<ConnectivityResult> get connectivityStream {
+
+  static Stream<List<ConnectivityResult>> get connectivityStream {
     return ConnectivityService()._connectivity.onConnectivityChanged;
   }
-  
+
   static bool get isWifi {
-    return ConnectivityService()._currentResult == ConnectivityResult.wifi;
+    return ConnectivityService()._currentResults.contains(ConnectivityResult.wifi);
   }
-  
+
   static bool get isMobile {
-    return ConnectivityService()._currentResult == ConnectivityResult.mobile;
+    return ConnectivityService()._currentResults.contains(ConnectivityResult.mobile);
   }
 }

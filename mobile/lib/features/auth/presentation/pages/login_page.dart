@@ -25,20 +25,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      final success = await ref.read(authProvider.notifier).login(
-            _usernameController.text.trim(),
-            _passwordController.text,
-          );
+      print('🚀 [LoginPage] Validation OK, démarrage du login...');
+      final username = _usernameController.text.trim();
+      final password = _passwordController.text;
+      
+      print('🚀 [LoginPage] Username: $username');
+      
+      final success = await ref.read(authProvider.notifier).login(username, password);
 
-      if (success && mounted) {
-        context.go('/dashboard');
-      } else if (mounted) {
+      print('🚀 [LoginPage] Résultat du login: success=$success');
+      print('🚀 [LoginPage] État auth: isAuthenticated=${ref.read(authProvider).isAuthenticated}');
+
+      if (!success && mounted) {
+        final error = ref.read(authProvider).error ?? 'Erreur de connexion';
+        print('❌ [LoginPage] Erreur affichée à l\'utilisateur: $error');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ref.read(authProvider).error ?? 'Erreur de connexion'),
+            content: Text(error),
             backgroundColor: Colors.red,
           ),
         );
+      } else if (success && mounted) {
+        print('✅ [LoginPage] Login réussi, attente de la redirection...');
+        // Attendre un peu pour que le router détecte le changement
+        await Future.delayed(const Duration(milliseconds: 200));
+        if (mounted && ref.read(authProvider).isAuthenticated) {
+          print('✅ [LoginPage] Redirection vers /dashboard');
+          context.go('/dashboard');
+        }
       }
     }
   }
@@ -46,6 +60,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    
+    // Écouter les changements d'authentification pour forcer la mise à jour du router
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      final wasNotAuthenticated = previous == null || !previous.isAuthenticated;
+      if (next.isAuthenticated && wasNotAuthenticated && mounted) {
+        // Forcer le router à re-vérifier le redirect en naviguant vers la route actuelle puis dashboard
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            // Le router devrait automatiquement rediriger, mais on force au cas où
+            final router = GoRouter.of(context);
+            if (router.routerDelegate.currentConfiguration.uri.path == '/login') {
+              context.go('/dashboard');
+            }
+          }
+        });
+      }
+    });
 
     return Scaffold(
       body: SafeArea(
@@ -57,10 +88,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 48),
-                Icon(
-                  Icons.school,
-                  size: 80,
-                  color: Theme.of(context).colorScheme.primary,
+                // Logo de l'application (à remplacer par assets/images/logo.png quand disponible)
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 80,
+                  width: 80,
+                  errorBuilder: (context, error, stackTrace) {
+                    // Fallback vers l'icône si le logo n'existe pas encore
+                    return Icon(
+                      Icons.school,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.primary,
+                    );
+                  },
                 ),
                 const SizedBox(height: 24),
                 Text(

@@ -1,6 +1,12 @@
 class AppConfig {
   // API Configuration
-  static const String baseUrl = 'http://localhost:8000/api';
+  // En production : flutter build apk --dart-define=API_BASE_URL=https://backend-xxx.up.railway.app
+  // Sinon utilise la valeur par défaut (développement)
+  // Note: baseUrl ne doit PAS contenir /api car tous les endpoints dans le code commencent par /api/
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
   static const String apiVersion = 'v1';
   static const Duration apiTimeout = Duration(seconds: 30);
   
@@ -18,7 +24,10 @@ class AppConfig {
   static const int maxConcurrentDownloads = 3;
   
   // Security
-  static const String encryptionKey = 'eschool_mobile_key'; // À changer en production
+  static const String encryptionKey = String.fromEnvironment(
+    'ENCRYPTION_KEY',
+    defaultValue: 'eschool_mobile_key',
+  );
   static const int tokenRefreshThreshold = 300; // 5 minutes avant expiration
   
   // UI Configuration

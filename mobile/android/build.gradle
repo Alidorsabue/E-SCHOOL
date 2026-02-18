@@ -1,0 +1,78 @@
+import org.gradle.api.tasks.compile.JavaCompile
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+// Retirer -Werror des plugins (ex: connectivity) qui compilent en Java 8 et traitent les warnings en erreurs
+subprojects { sub ->
+    sub.afterEvaluate { p ->
+        p.tasks.withType(JavaCompile).configureEach { task ->
+            task.options.compilerArgs.removeAll { it == "-Werror" }
+            task.doFirst { task.options.compilerArgs.removeAll { it == "-Werror" } }
+        }
+    }
+}
+// Filet de sécurité : retirer -Werror sur toutes les tâches JavaCompile du build (plugins inclus)
+gradle.taskGraph.whenReady { graph ->
+    graph.allTasks.findAll { it instanceof JavaCompile }.each { task ->
+        task.options.compilerArgs.removeAll { it == "-Werror" }
+    }
+}
+
+// Corriger les plugins avec v1 embedding (registerWith(Registrar)) : supprimer la méthode pour permettre la compilation
+subprojects { sub ->
+    sub.afterEvaluate { p ->
+        if (!p.plugins.hasPlugin("com.android.library")) return
+        p.fileTree(p.file("src/main/java")).include("**/*.java").each { javaFile ->
+            def text = javaFile.text
+            if (!text.contains("PluginRegistry.Registrar")) return
+            // Supprimer la méthode registerWith(Registrar) et son annotation (multiligne, corps avec accolades)
+            def regex = /(?m)(\s*@SuppressWarnings\("deprecation"\)\s*\n)?\s*public static void registerWith\(io\.flutter\.plugin\.common\.PluginRegistry\.Registrar[^)]*\)\s*\{\s*\n[\s\S]*?^\s*\}\s*\n/
+            def modified = text.replaceAll(regex, "  /* registerWith(v1) removed for Flutter v2 embedding */\n\n")
+            if (modified != text) javaFile.write(modified)
+        }
+    }
+}
+
+// Fix "Namespace not specified" pour les plugins Android (ex: connectivity) avec AGP 8+
+// Utiliser gradle.beforeProject pour configurer avant l'évaluation de chaque projet
+gradle.beforeProject { project ->
+    if (project == rootProject) return
+    project.pluginManager.withPlugin("com.android.library") {
+        project.android {
+            if (namespace == null || namespace.isEmpty()) {
+                // Extraire le namespace depuis le package dans AndroidManifest.xml
+                def manifestFile = project.file("src/main/AndroidManifest.xml")
+                if (manifestFile.exists()) {
+                    def manifest = manifestFile.text
+                    def packageMatch = manifest =~ /package="([^"]+)"/
+                    if (packageMatch.find()) {
+                        namespace = packageMatch.group(1)
+                    } else {
+                        namespace = project.group.toString()
+                    }
+                } else {
+                    namespace = project.group.toString()
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

@@ -27,7 +27,7 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
     });
 
     try {
-      final response = await ApiService().get('/elearning/assignments/');
+      final response = await ApiService().get('/api/elearning/assignments/');
       setState(() {
         _assignments = response.data as List<dynamic>;
         _isLoading = false;

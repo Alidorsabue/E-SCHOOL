@@ -35,7 +35,7 @@ class _CourseDetailPageState extends ConsumerState<CourseDetailPage> {
     });
 
     try {
-      final response = await ApiService().get('/elearning/courses/${widget.courseId}/');
+      final response = await ApiService().get('/api/elearning/courses/${widget.courseId}/');
       setState(() {
         _course = response.data as Map<String, dynamic>;
         _isLoading = false;

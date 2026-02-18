@@ -25,7 +25,7 @@ class _TutoringPageState extends ConsumerState<TutoringPage> {
     });
 
     try {
-      final response = await ApiService().get('/tutoring/sessions/');
+      final response = await ApiService().get('/api/tutoring/sessions/');
       setState(() {
         _tutoringSessions = response.data as List<dynamic>;
         _isLoading = false;

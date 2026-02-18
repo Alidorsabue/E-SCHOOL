@@ -27,7 +27,7 @@ class _ExamsPageState extends ConsumerState<ExamsPage> {
     });
 
     try {
-      final response = await ApiService().get('/elearning/quizzes/');
+      final response = await ApiService().get('/api/elearning/quizzes/');
       setState(() {
         _exams = response.data as List<dynamic>;
         _isLoading = false;

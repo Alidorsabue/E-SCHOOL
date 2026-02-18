@@ -27,7 +27,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     });
 
     try {
-      final response = await ApiService().get('/library/books/');
+      final response = await ApiService().get('/api/library/books/');
       setState(() {
         _books = response.data as List<dynamic>;
         _isLoading = false;

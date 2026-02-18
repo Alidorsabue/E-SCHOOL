@@ -33,7 +33,7 @@ class _AssignmentDetailPageState extends ConsumerState<AssignmentDetailPage> {
     });
 
     try {
-      final response = await ApiService().get('/elearning/assignments/${widget.assignmentId}/');
+      final response = await ApiService().get('/api/elearning/assignments/${widget.assignmentId}/');
       setState(() {
         _assignment = response.data as Map<String, dynamic>;
         _isLoading = false;

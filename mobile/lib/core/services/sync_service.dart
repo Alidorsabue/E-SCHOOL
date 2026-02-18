@@ -73,7 +73,7 @@ class SyncService {
       case 'assignments':
         if (action == 'submit') {
           await ApiService().post(
-            '/elearning/assignments/${data['id']}/submit/',
+            '/api/elearning/assignments/${data['id']}/submit/',
             data: data,
           );
         }
@@ -81,7 +81,7 @@ class SyncService {
       case 'enrollment':
         if (action == 'create') {
           await ApiService().post(
-            '/enrollment/applications/',
+            '/api/enrollment/applications/',
             data: data,
           );
         }

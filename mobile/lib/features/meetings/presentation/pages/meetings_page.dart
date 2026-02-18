@@ -27,7 +27,7 @@ class _MeetingsPageState extends ConsumerState<MeetingsPage> {
     });
 
     try {
-      final response = await ApiService().get('/meetings/');
+      final response = await ApiService().get('/api/meetings/');
       setState(() {
         _meetings = response.data as List<dynamic>;
         _isLoading = false;
