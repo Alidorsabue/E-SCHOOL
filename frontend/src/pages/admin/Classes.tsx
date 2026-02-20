@@ -7,8 +7,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
-import { userFullName } from '@/utils/name'
-
 const classSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
   next_class_name: z.string().max(100).optional().nullable(),
@@ -107,7 +105,7 @@ export default function AdminClasses() {
     if (!searchQuery) return true
     const s = enr.student || {}
     const query = searchQuery.toLowerCase()
-    const name = (s.user_name || userFullName(s.user) || '').toLowerCase()
+    const name = (s.user_name || [s.user?.first_name, s.user?.last_name, s.user?.middle_name].filter(Boolean).join(' ') || '').toLowerCase()
     const studentId = s.student_id?.toLowerCase() || ''
     const email = s.user?.email?.toLowerCase() || ''
     const phone = s.user?.phone?.toLowerCase() || ''
@@ -359,7 +357,7 @@ export default function AdminClasses() {
                   <option value="">Aucun</option>
                   {(teachers?.results || []).map((t: any) => (
                     <option key={t.id} value={t.id}>
-                      {userFullName(t.user) || t.user?.username || `Enseignant #${t.id}`}
+                      {[t.user?.first_name, t.user?.last_name, t.user?.middle_name].filter(Boolean).join(' ') || t.user?.username || `Enseignant #${t.id}`}
                     </option>
                   ))}
                 </select>
@@ -579,7 +577,7 @@ export default function AdminClasses() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                              {s.user_name || userFullName(s.user) || 'Élève sans nom'}
+                              {s.user_name || [s.user?.first_name, s.user?.last_name, s.user?.middle_name].filter(Boolean).join(' ') || 'Élève sans nom'}
                             </h3>
                             <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${statusBadgeClass}`}>
                               {enr.status_display || enr.status}
@@ -651,7 +649,7 @@ export default function AdminClasses() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    {selectedStudent.user_name || userFullName(selectedStudent.user) || 'Élève sans nom'}
+                    {selectedStudent.user_name || [selectedStudent.user?.first_name, selectedStudent.user?.last_name, selectedStudent.user?.middle_name].filter(Boolean).join(' ') || 'Élève sans nom'}
                   </h3>
                   {selectedStudent.student_id && (
                     <p className="text-lg text-gray-600 dark:text-gray-400">

@@ -13,7 +13,6 @@ import {
   Filter,
   FileDown,
 } from 'lucide-react'
-import { userFullName } from '@/utils/name'
 
 type StatusFilter = 'all' | 'actifs' | 'anciens' | 'sortants'
 
@@ -217,7 +216,7 @@ export default function StudentsPage() {
                     >
                       <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{s.student_id ?? '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        {s.user_name ?? userFullName(s.user) || '-'}
+                        {(s.user_name ?? [s.user?.first_name, s.user?.last_name, s.user?.middle_name].filter(Boolean).join(' ')) || '-'}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{s.class_name || s.school_class?.name || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{s.academic_year ?? '-'}</td>
@@ -318,7 +317,7 @@ function IdentityTab({ data }: { data: any }) {
       </div>
       <div>
         <p className="text-xs text-gray-500 dark:text-gray-400">Nom complet</p>
-        <p className="font-medium text-gray-900 dark:text-white">{data?.user_name || userFullName(u) || '-'}</p>
+        <p className="font-medium text-gray-900 dark:text-white">{data?.user_name || [u?.first_name, u?.last_name, u?.middle_name].filter(Boolean).join(' ') || '-'}</p>
       </div>
       <div>
         <p className="text-xs text-gray-500 dark:text-gray-400">Date de naissance</p>

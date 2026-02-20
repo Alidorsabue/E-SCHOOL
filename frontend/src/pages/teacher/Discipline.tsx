@@ -7,7 +7,6 @@ import { fr } from 'date-fns/locale'
 import { Plus, CheckCircle, Eye, XCircle, X } from 'lucide-react'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import { cn } from '@/utils/cn'
-import { userFullName } from '@/utils/name'
 
 interface DisciplineRecord {
   id: number
@@ -203,7 +202,7 @@ export default function TeacherDiscipline() {
                   <option value="">Sélectionner un élève</option>
                   {students?.results?.map((student: any) => (
                     <option key={student.id} value={student.id}>
-                      {userFullName(student.user)} - {student.student_id}
+                      {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                     </option>
                   ))}
                 </select>

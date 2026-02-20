@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
 import { Users, BookOpen, X, User, Mail, Phone } from 'lucide-react'
-import { userFullName } from '@/utils/name'
 
 export default function TeacherClasses() {
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null)
@@ -155,7 +154,7 @@ export default function TeacherClasses() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                            {student.user_name || userFullName(student.user) || 'Élève sans nom'}
+                            {student.user_name || [student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ') || 'Élève sans nom'}
                           </h3>
                           <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                             {student.student_id && (

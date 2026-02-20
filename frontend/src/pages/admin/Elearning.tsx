@@ -7,8 +7,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
-import { userFullName } from '@/utils/name'
-
 const courseSchema = z.object({
   title: z.string().min(1, 'Le titre est requis'),
   description: z.string().min(1, 'La description est requise'),

@@ -51,7 +51,7 @@ export default function ParentGrades() {
             <option value="">Tous les enfants</option>
             {children.map((child: any) => (
               <option key={child.identity.id} value={child.identity.id}>
-                {userFullName(child.identity.user)} - {child.identity.student_id}
+                {[child.identity.user?.first_name, child.identity.user?.last_name, child.identity.user?.middle_name].filter(Boolean).join(' ')} - {child.identity.student_id}
               </option>
             ))}
           </select>

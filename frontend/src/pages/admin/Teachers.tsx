@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
-import { userFullName } from '@/utils/name'
 
 const teacherSchema = z.object({
   username: z.string().min(1, 'Le nom d\'utilisateur est requis'),
@@ -377,7 +376,7 @@ export default function AdminTeachers() {
                 {teacher.user?.profile_picture ? (
                   <img
                     src={teacher.user.profile_picture}
-                    alt={userFullName(teacher.user)}
+                    alt={[teacher.user?.first_name, teacher.user?.last_name, teacher.user?.middle_name].filter(Boolean).join(' ') || 'Avatar'}
                     className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (
@@ -387,7 +386,7 @@ export default function AdminTeachers() {
                 )}
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    {userFullName(teacher.user)}
+                    {[teacher.user?.first_name, teacher.user?.last_name, teacher.user?.middle_name].filter(Boolean).join(' ')}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{teacher.employee_id}</p>
                   {teacher.specialization && (
@@ -502,7 +501,7 @@ export default function AdminTeachers() {
                     )}
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {userFullName(selectedTeacher.user)}
+                        {[selectedTeacher.user?.first_name, selectedTeacher.user?.last_name, selectedTeacher.user?.middle_name].filter(Boolean).join(' ')}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400">{selectedTeacher.employee_id}</p>
                     </div>

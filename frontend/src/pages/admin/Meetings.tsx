@@ -223,7 +223,7 @@ export default function AdminMeetings() {
                   <option value="">Sélectionner un enseignant</option>
                   {teachers?.results?.map((teacher: any) => (
                     <option key={teacher.id} value={teacher.id}>
-                      {userFullName(teacher.user)}
+                      {[teacher.user?.first_name, teacher.user?.last_name, teacher.user?.middle_name].filter(Boolean).join(' ')}
                     </option>
                   ))}
                 </select>
@@ -332,7 +332,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {userFullName(student.user)} - {student.student_id}
+                          {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                         </span>
                       </label>
                     ))}
@@ -344,7 +344,7 @@ export default function AdminMeetings() {
                       const student = students?.results?.find((s: any) => s.id === studentId)
                       return student ? (
                         <span key={studentId} className="badge badge-info flex items-center gap-1">
-                          {userFullName(student.user)}
+                          {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')}
                           <button
                             type="button"
                             onClick={() => toggleStudent(studentId)}
@@ -382,7 +382,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {userFullName(parent.user)}
+                          {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                         </span>
                       </label>
                     ))}
@@ -394,7 +394,7 @@ export default function AdminMeetings() {
                       const parent = parents?.results?.find((p: any) => p.id === parentId)
                       return parent ? (
                         <span key={parentId} className="badge badge-info flex items-center gap-1">
-                          {userFullName(parent.user)}
+                          {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                           <button
                             type="button"
                             onClick={() => toggleParent(parentId)}
@@ -421,7 +421,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un parent</option>
                     {parents?.results?.map((parent: any) => (
                       <option key={parent.id} value={parent.id}>
-                        {userFullName(parent.user)}
+                        {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                       </option>
                     ))}
                   </select>
@@ -434,7 +434,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un élève</option>
                     {students?.results?.map((student: any) => (
                       <option key={student.id} value={student.id}>
-                        {userFullName(student.user)} - {student.student_id}
+                        {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                       </option>
                     ))}
                   </select>
@@ -468,7 +468,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {userFullName(teacher.user)}
+                          {[teacher.user?.first_name, teacher.user?.last_name, teacher.user?.middle_name].filter(Boolean).join(' ')}
                         </span>
                       </label>
                     ))}
@@ -480,7 +480,7 @@ export default function AdminMeetings() {
                       const teacher = teachers?.results?.find((t: any) => t.id === teacherId)
                       return teacher ? (
                         <span key={teacherId} className="badge badge-info flex items-center gap-1">
-                          {userFullName(teacher.user)}
+                          {[teacher.user?.first_name, teacher.user?.last_name, teacher.user?.middle_name].filter(Boolean).join(' ')}
                           <button
                             type="button"
                             onClick={() => {
@@ -518,7 +518,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {userFullName(parent.user)}
+                          {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                         </span>
                       </label>
                     ))}
@@ -530,7 +530,7 @@ export default function AdminMeetings() {
                       const parent = parents?.results?.find((p: any) => p.id === parentId)
                       return parent ? (
                         <span key={parentId} className="badge badge-info flex items-center gap-1">
-                          {userFullName(parent.user)}
+                          {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                           <button
                             type="button"
                             onClick={() => toggleParent(parentId)}
@@ -557,7 +557,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un parent</option>
                     {parents?.results?.map((parent: any) => (
                       <option key={parent.id} value={parent.id}>
-                        {userFullName(parent.user)}
+                        {[parent.user?.first_name, parent.user?.last_name, parent.user?.middle_name].filter(Boolean).join(' ')}
                       </option>
                     ))}
                   </select>
@@ -570,7 +570,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un élève</option>
                     {students?.results?.map((student: any) => (
                       <option key={student.id} value={student.id}>
-                        {userFullName(student.user)} - {student.student_id}
+                        {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                       </option>
                     ))}
                   </select>

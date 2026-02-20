@@ -129,7 +129,7 @@ export default function ParentTutoring() {
                     <option value="">Sélectionner un enfant</option>
                     {children?.map((child: any) => (
                       <option key={child.identity.id} value={child.identity.id}>
-                        {userFullName(child.identity.user)}
+                        {[child.identity.user?.first_name, child.identity.user?.last_name, child.identity.user?.middle_name].filter(Boolean).join(' ')}
                       </option>
                     ))}
                   </select>

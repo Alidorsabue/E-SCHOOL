@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
-import { userFullName } from '@/utils/name'
 
 type PaymentFormMode = 'parent' | 'accountant'
 
@@ -109,7 +108,7 @@ export default function PaymentForm({
               <option value="">Sélectionner un parent</option>
               {parents.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {userFullName(p)} {p.email ? `(${p.email})` : ''}
+                  {[p?.first_name, p?.last_name, p?.middle_name].filter(Boolean).join(' ')} {p.email ? `(${p.email})` : ''}
                 </option>
               ))}
             </select>
@@ -127,13 +126,13 @@ export default function PaymentForm({
             {mode === 'parent' &&
               children.map((child: ChildOption) => (
                 <option key={child.identity.id} value={child.identity.id}>
-                  {userFullName(child.identity.user)} - {child.identity.student_id}
+                  {[child.identity.user?.first_name, child.identity.user?.last_name, child.identity.user?.middle_name].filter(Boolean).join(' ')} - {child.identity.student_id}
                 </option>
               ))}
             {mode === 'accountant' &&
               (studentOptions as StudentOption[]).map((s) => (
                 <option key={s.id} value={s.id}>
-                  {userFullName(s.user)} - {s.student_id}
+                  {[s.user?.first_name, s.user?.last_name, s.user?.middle_name].filter(Boolean).join(' ')} - {s.student_id}
                 </option>
               ))}
           </select>

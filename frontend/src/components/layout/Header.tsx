@@ -2,8 +2,6 @@ import { Bell, Menu } from 'lucide-react'
 import { User as UserType } from '@/types'
 import logoImage from '@/images/logo.png'
 import UserMenu from '@/components/user/UserMenu'
-import { userFullName } from '@/utils/name'
-
 interface HeaderProps {
   user: UserType
   onLogout: () => void

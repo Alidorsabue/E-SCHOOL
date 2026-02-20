@@ -4,7 +4,6 @@ import { Card } from '@/components/ui/Card'
 import { Search, Loader2 } from 'lucide-react'
 import { useState, useMemo, useEffect } from 'react'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
-import { userFullName } from '@/utils/name'
 
 /** Conforme bulletin RDC: 2 semestres, 4 périodes (Trav. journaliers), 2 examens par semestre. */
 const SEMESTER_OPTIONS = [
@@ -267,7 +266,7 @@ export default function TeacherGrades() {
   }
 
   const studentName = (s: any) =>
-    s.user_name || userFullName(s.user) || `Élève #${s.id}`
+    s.user_name || [s.user?.first_name, s.user?.last_name, s.user?.middle_name].filter(Boolean).join(' ') || `Élève #${s.id}`
 
   return (
     <div>

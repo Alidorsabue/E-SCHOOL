@@ -184,7 +184,7 @@ export default function ParentDiscipline() {
               <option value="">Tous les enfants</option>
               {children.results.map((child: any) => (
                 <option key={child.id} value={child.id}>
-                  {userFullName(child.user)}
+                  {[child.user?.first_name, child.user?.last_name, child.user?.middle_name].filter(Boolean).join(' ')}
                 </option>
               ))}
             </select>

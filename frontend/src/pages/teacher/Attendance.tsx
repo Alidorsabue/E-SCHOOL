@@ -8,7 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import { sortClassesByLevel } from '@/utils/classLevel'
-import { userFullName } from '@/utils/name'
 
 const attendanceSchema = z.object({
   school_class: z.number().min(1, 'La classe est requise'),
@@ -229,7 +228,7 @@ export default function TeacherAttendance() {
                               className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800"
                             >
                               <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                {stu.user_name || userFullName(stu.user) || 'Élève sans nom'}
+                                {stu.user_name || [stu.user?.first_name, stu.user?.last_name, stu.user?.middle_name].filter(Boolean).join(' ') || 'Élève sans nom'}
                               </span>
                               <div className="flex gap-1">
                                 {(['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as const).map((st) => (

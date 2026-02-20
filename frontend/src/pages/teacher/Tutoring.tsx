@@ -6,7 +6,6 @@ import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { Eye, MessageSquare, FileText, Plus, XCircle, Send, BookOpen } from 'lucide-react'
 import { cn } from '@/utils/cn'
-import { userFullName } from '@/utils/name'
 import toast from 'react-hot-toast'
 
 interface TutoringReport {
@@ -563,7 +562,7 @@ export default function TeacherTutoring() {
                   <option value="">Sélectionner un élève</option>
                   {students?.results?.map((student: any) => (
                     <option key={student.id} value={student.id}>
-                      {userFullName(student.user)} - {student.student_id}
+                      {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                     </option>
                   ))}
                 </select>
@@ -633,7 +632,7 @@ export default function TeacherTutoring() {
                   <option value="">Sélectionner un élève</option>
                   {students?.results?.map((student: any) => (
                     <option key={student.id} value={student.id}>
-                      {userFullName(student.user)} - {student.student_id}
+                      {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                     </option>
                   ))}
                 </select>
@@ -689,7 +688,7 @@ export default function TeacherTutoring() {
                   <option value="">Sélectionner un élève</option>
                   {students?.results?.map((student: any) => (
                     <option key={student.id} value={student.id}>
-                      {userFullName(student.user)} - {student.student_id}
+                      {[student.user?.first_name, student.user?.last_name, student.user?.middle_name].filter(Boolean).join(' ')} - {student.student_id}
                     </option>
                   ))}
                 </select>
