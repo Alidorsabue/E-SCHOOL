@@ -6,22 +6,23 @@ from apps.schools.admin_base import SchoolScopedAdminMixin
 
 @admin.register(User)
 class UserAdmin(SchoolScopedAdminMixin, BaseUserAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'school', 'is_active', 'created_at']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'middle_name', 'role', 'school', 'is_active', 'created_at']
     list_filter = ['role', 'is_active', 'is_verified']
-    search_fields = ['username', 'email', 'first_name', 'last_name', 'phone']
+    search_fields = ['username', 'email', 'first_name', 'last_name', 'middle_name', 'phone']
     
     def get_list_filter(self, request):
         if request.user.is_superuser:
             return ['role', 'is_active', 'is_verified', 'school']
         return ['role', 'is_active', 'is_verified']
     fieldsets = BaseUserAdmin.fieldsets + (
+        ('Postnom (élève)', {'fields': ('middle_name',)}),
         ('Informations supplémentaires', {
             'fields': ('phone', 'school', 'role', 'profile_picture', 'address', 'date_of_birth', 'is_verified')
         }),
     )
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Informations supplémentaires', {
-            'fields': ('email', 'phone', 'school', 'role', 'first_name', 'last_name')
+            'fields': ('email', 'phone', 'school', 'role', 'first_name', 'last_name', 'middle_name')
         }),
     )
     
@@ -135,7 +136,7 @@ class ParentAdmin(SchoolScopedAdminMixin, admin.ModelAdmin):
 class StudentAdmin(SchoolScopedAdminMixin, admin.ModelAdmin):
     list_display = ['user', 'student_id', 'school_class', 'is_former_student', 'graduation_year', 'parent', 'academic_year', 'enrollment_date', 'get_school']
     list_filter = ['academic_year', 'school_class', 'is_former_student', 'enrollment_date']
-    search_fields = ['user__username', 'student_id', 'user__first_name', 'user__last_name']
+    search_fields = ['user__username', 'student_id', 'user__first_name', 'user__last_name', 'user__middle_name']
     
     def get_list_filter(self, request):
         if request.user.is_superuser:

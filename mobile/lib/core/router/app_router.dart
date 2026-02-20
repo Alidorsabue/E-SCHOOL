@@ -10,16 +10,39 @@ import '../../features/assignments/presentation/pages/assignments_page.dart';
 import '../../features/assignments/presentation/pages/assignment_detail_page.dart';
 import '../../features/exams/presentation/pages/exams_page.dart';
 import '../../features/exams/presentation/pages/exam_detail_page.dart';
+import '../../features/exams/presentation/pages/quiz_take_page.dart';
 import '../../features/library/presentation/pages/library_page.dart';
 import '../../features/library/presentation/pages/book_detail_page.dart';
+import '../../features/library/presentation/pages/book_reader_page.dart';
 import '../../features/grades/presentation/pages/grades_page.dart';
 import '../../features/enrollment/presentation/pages/enrollment_page.dart';
 import '../../features/meetings/presentation/pages/meetings_page.dart';
 import '../../features/payments/presentation/pages/payments_page.dart';
+import '../../features/payments/presentation/pages/payment_receipt_page.dart';
 import '../../features/tutoring/presentation/pages/tutoring_page.dart';
 import '../../features/discipline/presentation/pages/discipline_page.dart';
 import '../../features/communication/presentation/pages/communication_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
+import '../../features/preferences/presentation/pages/preferences_page.dart';
+import '../../features/teacher/presentation/pages/teacher_classes_page.dart';
+import '../../features/teacher/presentation/pages/teacher_assignments_page.dart';
+import '../../features/teacher/presentation/pages/teacher_attendance_page.dart';
+import '../../features/teacher/presentation/pages/teacher_grades_page.dart';
+import '../../features/teacher/presentation/pages/teacher_quizzes_page.dart';
+import '../../features/teacher/presentation/pages/teacher_courses_page.dart';
+import '../../features/teacher/presentation/pages/teacher_quiz_create_page.dart';
+import '../../features/teacher/presentation/pages/teacher_my_class_page.dart';
+import '../../features/teacher/presentation/pages/teacher_class_subjects_page.dart';
+import '../../features/teacher/presentation/pages/teacher_students_page.dart';
+import '../../features/admin/presentation/pages/admin_enrollments_page.dart';
+import '../../features/admin/presentation/pages/admin_students_page.dart';
+import '../../features/admin/presentation/pages/admin_classes_page.dart';
+import '../../features/admin/presentation/pages/admin_teachers_page.dart';
+import '../../features/admin/presentation/pages/admin_former_students_page.dart';
+import '../../features/admin/presentation/pages/admin_elearning_page.dart';
+import '../../features/accountant/presentation/pages/accountant_expenses_page.dart';
+import '../../features/accountant/presentation/pages/accountant_caisse_page.dart';
+import '../../features/students/presentation/pages/student_detail_page.dart';
 import '../providers/auth_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -50,13 +73,52 @@ final routerProvider = Provider<GoRouter>((ref) {
         // Élève : pas d'accès inscription, réunions, paiements, encadrement (réservés aux parents)
         if (userRole == 'STUDENT') {
           if (path.startsWith('/enrollment') || path.startsWith('/meetings') ||
-              path.startsWith('/payments') || path.startsWith('/tutoring')) {
+              path.startsWith('/payments') || path.startsWith('/tutoring') ||
+              path.startsWith('/teacher') || path.startsWith('/admin') ||
+              path.startsWith('/accountant') || path.startsWith('/discipline-officer')) {
             return '/dashboard';
           }
         }
         // Parent : pas d'accès cours, devoirs, examens (réservés aux élèves)
         if (userRole == 'PARENT') {
-          if (path.startsWith('/courses') || path.startsWith('/assignments') || path.startsWith('/exams')) {
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || 
+              path.startsWith('/exams') || path.startsWith('/teacher') || 
+              path.startsWith('/admin') || path.startsWith('/accountant') ||
+              path.startsWith('/discipline-officer')) {
+            return '/dashboard';
+          }
+        }
+        // Enseignant : accès uniquement aux routes teacher
+        if (userRole == 'TEACHER') {
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || 
+              path.startsWith('/exams') || path.startsWith('/enrollment') ||
+              path.startsWith('/meetings') || path.startsWith('/payments') ||
+              path.startsWith('/tutoring') || path.startsWith('/admin') ||
+              path.startsWith('/accountant') || path.startsWith('/discipline-officer')) {
+            return '/dashboard';
+          }
+        }
+        // Admin : accès uniquement aux routes admin
+        if (userRole == 'ADMIN') {
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || 
+              path.startsWith('/exams') || path.startsWith('/teacher') ||
+              path.startsWith('/accountant') || path.startsWith('/discipline-officer')) {
+            return '/dashboard';
+          }
+        }
+        // Comptable : accès uniquement aux routes accountant
+        if (userRole == 'ACCOUNTANT') {
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || 
+              path.startsWith('/exams') || path.startsWith('/teacher') ||
+              path.startsWith('/admin') || path.startsWith('/discipline-officer')) {
+            return '/dashboard';
+          }
+        }
+        // Chargé de discipline : accès uniquement aux routes discipline-officer
+        if (userRole == 'DISCIPLINE_OFFICER') {
+          if (path.startsWith('/courses') || path.startsWith('/assignments') || 
+              path.startsWith('/exams') || path.startsWith('/teacher') ||
+              path.startsWith('/admin') || path.startsWith('/accountant')) {
             return '/dashboard';
           }
         }
@@ -115,6 +177,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return ExamDetailPage(examId: int.parse(id));
             },
+            routes: [
+              GoRoute(
+                path: 'take/:attemptId',
+                builder: (context, state) {
+                  final quizId = int.parse(state.pathParameters['id']!);
+                  final attemptId = int.parse(state.pathParameters['attemptId']!);
+                  return QuizTakePage(quizId: quizId, attemptId: attemptId);
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -130,6 +202,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/payments',
         builder: (context, state) => const PaymentsPage(),
+        routes: [
+          GoRoute(
+            path: ':id/receipt',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return PaymentReceiptPage(paymentId: int.parse(id));
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/tutoring',
@@ -154,6 +235,15 @@ final routerProvider = Provider<GoRouter>((ref) {
               final id = state.pathParameters['id']!;
               return BookDetailPage(bookId: int.parse(id));
             },
+            routes: [
+              GoRoute(
+                path: 'read',
+                builder: (context, state) {
+                  final bookId = int.parse(state.pathParameters['id']!);
+                  return BookReaderPage(bookId: bookId);
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -164,6 +254,140 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/preferences',
+        builder: (context, state) => const PreferencesPage(),
+      ),
+      // Route détail élève (utilisée par parent et admin)
+      GoRoute(
+        path: '/students/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return StudentDetailPage(studentId: int.parse(id));
+        },
+      ),
+      // Routes pour les enseignants
+      GoRoute(
+        path: '/teacher/classes',
+        builder: (context, state) => const TeacherClassesPage(),
+      ),
+      GoRoute(
+        path: '/teacher/assignments',
+        builder: (context, state) => const TeacherAssignmentsPage(),
+      ),
+      GoRoute(
+        path: '/teacher/attendance',
+        builder: (context, state) => const TeacherAttendancePage(),
+      ),
+      GoRoute(
+        path: '/teacher/quizzes',
+        builder: (context, state) => const TeacherQuizzesPage(),
+        routes: [
+          GoRoute(
+            path: 'create',
+            builder: (context, state) => const TeacherQuizCreatePage(),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/teacher/courses',
+        builder: (context, state) => const TeacherCoursesPage(),
+      ),
+      GoRoute(
+        path: '/teacher/grades',
+        builder: (context, state) => const TeacherGradesPage(),
+      ),
+      GoRoute(
+        path: '/teacher/discipline',
+        builder: (context, state) => const DisciplinePage(), // Réutiliser DisciplinePage
+      ),
+      GoRoute(
+        path: '/teacher/my-class',
+        builder: (context, state) => const TeacherMyClassPage(),
+      ),
+      GoRoute(
+        path: '/teacher/class-subjects',
+        builder: (context, state) => const TeacherClassSubjectsPage(),
+      ),
+      GoRoute(
+        path: '/teacher/students',
+        builder: (context, state) => const TeacherStudentsPage(),
+      ),
+      GoRoute(
+        path: '/teacher/tutoring',
+        builder: (context, state) => const TutoringPage(), // Réutiliser TutoringPage
+      ),
+      // Routes pour les admins
+      GoRoute(
+        path: '/admin/enrollments',
+        builder: (context, state) => const AdminEnrollmentsPage(),
+      ),
+      GoRoute(
+        path: '/admin/students',
+        builder: (context, state) => const AdminStudentsPage(),
+      ),
+      GoRoute(
+        path: '/admin/classes',
+        builder: (context, state) => const AdminClassesPage(),
+      ),
+      GoRoute(
+        path: '/admin/teachers',
+        builder: (context, state) => const AdminTeachersPage(),
+      ),
+      GoRoute(
+        path: '/admin/payments',
+        builder: (context, state) => const PaymentsPage(), // Réutiliser PaymentsPage
+      ),
+      GoRoute(
+        path: '/admin/library',
+        builder: (context, state) => const LibraryPage(), // Réutiliser LibraryPage
+      ),
+      GoRoute(
+        path: '/admin/discipline',
+        builder: (context, state) => const DisciplinePage(), // Réutiliser DisciplinePage
+      ),
+      GoRoute(
+        path: '/admin/communication',
+        builder: (context, state) => const CommunicationPage(), // Réutiliser CommunicationPage
+      ),
+      GoRoute(
+        path: '/admin/former-students',
+        builder: (context, state) => const AdminFormerStudentsPage(),
+      ),
+      GoRoute(
+        path: '/admin/elearning',
+        builder: (context, state) => const AdminElearningPage(),
+      ),
+      // Routes pour les comptables
+      GoRoute(
+        path: '/accountant/enrollments',
+        builder: (context, state) => const EnrollmentPage(), // Réutiliser EnrollmentPage
+      ),
+      GoRoute(
+        path: '/accountant/payments',
+        builder: (context, state) => const PaymentsPage(), // Réutiliser PaymentsPage
+      ),
+      GoRoute(
+        path: '/accountant/expenses',
+        builder: (context, state) => const AccountantExpensesPage(),
+      ),
+      GoRoute(
+        path: '/accountant/caisse',
+        builder: (context, state) => const AccountantCaissePage(),
+      ),
+      // Routes pour les chargés de discipline
+      GoRoute(
+        path: '/discipline-officer/discipline',
+        builder: (context, state) => const DisciplinePage(), // Réutiliser DisciplinePage
+      ),
+      GoRoute(
+        path: '/discipline-officer/meetings',
+        builder: (context, state) => const MeetingsPage(), // Réutiliser MeetingsPage
+      ),
+      GoRoute(
+        path: '/discipline-officer/communication',
+        builder: (context, state) => const CommunicationPage(), // Réutiliser CommunicationPage
       ),
     ],
   );

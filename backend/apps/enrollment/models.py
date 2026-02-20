@@ -72,7 +72,11 @@ class EnrollmentApplication(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.first_name} {self.last_name} - {self.school.name}"
+        parts = [self.first_name, self.last_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        full = " ".join(filter(None, parts)).strip()
+        return f"{full} - {self.school.name}"
 
 
 class ReEnrollment(models.Model):

@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { BookOpen, Plus, Trash2, Loader2, X } from 'lucide-react'
 import { showErrorToast, showSuccessToast } from '@/utils/toast'
 import { sortClassesByLevel } from '@/utils/classLevel'
+import { userFullName } from '@/utils/name'
 
 // Note de base : 10 à 100 par pas de 10. Examen (max) = 2 × période.
 const PERIOD_MAX_OPTIONS = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -147,7 +148,7 @@ export default function TeacherClassSubjects() {
   }
 
   const teacherName = (t: any) =>
-    t?.user ? [t.user.first_name, t.user.last_name].filter(Boolean).join(' ') || t.user.username : `#${t?.id}`
+    t?.user ? userFullName(t.user) || t.user.username : `#${t?.id}`
 
   const handleDelete = (id: number) => {
     if (window.confirm('Retirer cette matière de la classe ?')) deleteMutation.mutate(id)

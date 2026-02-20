@@ -3,6 +3,7 @@ import api from '@/services/api'
 import { Card } from '@/components/ui/Card'
 import { Search, Users, GraduationCap } from 'lucide-react'
 import { useState, useMemo } from 'react'
+import { userFullName } from '@/utils/name'
 
 export default function AdminFormerStudents() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -84,7 +85,7 @@ export default function AdminFormerStudents() {
                 {filtered.map((s: any) => (
                   <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{s.student_id ?? '-'}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{s.user_name ?? ([s.user?.first_name, s.user?.last_name].filter(Boolean).join(' ') || '-')}</td>
+                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{s.user_name ?? userFullName(s.user) || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{s.graduation_year ?? '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{s.user?.email ?? s.user?.phone ?? '-'}</td>
                   </tr>

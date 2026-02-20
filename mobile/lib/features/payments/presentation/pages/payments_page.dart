@@ -3,7 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 import '../../../../core/network/api_service.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
+import '../widgets/payment_form_modal.dart';
 
 class PaymentsPage extends ConsumerStatefulWidget {
   const PaymentsPage({super.key});
@@ -15,12 +22,44 @@ class PaymentsPage extends ConsumerStatefulWidget {
 class _PaymentsPageState extends ConsumerState<PaymentsPage> {
   List<dynamic> _payments = [];
   List<dynamic> _pendingPayments = [];
+  List<dynamic> _filteredPayments = [];
+  List<dynamic> _filteredPendingPayments = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedCurrency;
+  int _selectedTab = 0;
+  List<dynamic> _children = [];
+  List<dynamic> _feeTypes = [];
+  bool _isParent = false;
 
   @override
   void initState() {
     super.initState();
-    _loadPayments();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = ref.read(authProvider).user;
+      setState(() {
+        _isParent = user?.isParent ?? false;
+      });
+      _loadPayments();
+      if (_isParent) {
+        _loadChildrenAndFeeTypes();
+      }
+    });
+  }
+
+  Future<void> _loadChildrenAndFeeTypes() async {
+    try {
+      final [childrenRes, feeTypesRes] = await Future.wait([
+        ApiService().get('/api/auth/students/parent_dashboard/'),
+        ApiService().get('/api/payments/fee-types/'),
+      ]);
+      setState(() {
+        _children = childrenRes.data is List ? childrenRes.data : (childrenRes.data['results'] ?? []);
+        _feeTypes = feeTypesRes.data is List ? feeTypesRes.data : (feeTypesRes.data['results'] ?? []);
+      });
+    } catch (e) {
+      // Ignore errors
+    }
   }
 
   Future<void> _loadPayments() async {
@@ -41,6 +80,7 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
       setState(() {
         _payments = rawList.where((p) => _statusEqual(p['status'], 'COMPLETED')).toList();
         _pendingPayments = rawList.where((p) => _statusEqual(p['status'], 'PENDING')).toList();
+        _applyFilters();
         _isLoading = false;
       });
     } catch (e) {
@@ -60,6 +100,51 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Impossible d\'ouvrir le lien de paiement')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadReceipt(int paymentId, String paymentIdStr) async {
+    try {
+      final status = await Permission.storage.request();
+      if (!status.isGranted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permission de stockage requise')),
+        );
+        return;
+      }
+
+      final dio = Dio();
+      final api = ApiService();
+      final token = await api.getToken();
+      
+      final response = await dio.get(
+        '${api.baseUrl}/api/payments/payments/$paymentId/download_receipt/',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          responseType: ResponseType.bytes,
+        ),
+      );
+
+      final appDir = await getApplicationDocumentsDirectory();
+      final downloadDir = Directory('${appDir.path}/downloads/receipts');
+      if (!await downloadDir.exists()) {
+        await downloadDir.create(recursive: true);
+      }
+
+      final file = File('${downloadDir.path}/receipt_$paymentIdStr.pdf');
+      await file.writeAsBytes(response.data);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Reçu téléchargé: ${file.path}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur lors du téléchargement: $e')),
         );
       }
     }
@@ -99,27 +184,56 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Paiements'),
-          bottom: const TabBar(
-            tabs: [
+          bottom: TabBar(
+            tabs: const [
               Tab(text: 'En attente'),
               Tab(text: 'Historique'),
             ],
+            onTap: (index) {
+              setState(() => _selectedTab = index);
+              _applyFilters();
+            },
           ),
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : TabBarView(
-                children: [
-                  // Paiements en attente
-                  _pendingPayments.isEmpty
-                      ? const Center(child: Text('Aucun paiement en attente'))
-                      : RefreshIndicator(
-                          onRefresh: _loadPayments,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _pendingPayments.length,
-                            itemBuilder: (context, index) {
-                              final payment = _pendingPayments[index];
+        body: Column(
+          children: [
+            SearchFilterBar(
+              hintText: 'Rechercher un paiement...',
+              onSearchChanged: (value) {
+                setState(() => _searchQuery = value);
+                _applyFilters();
+              },
+              filters: [
+                FilterOption(
+                  key: 'currency',
+                  label: 'Devise',
+                  values: [
+                    FilterValue(value: 'CDF', label: 'CDF'),
+                    FilterValue(value: 'USD', label: 'USD'),
+                  ],
+                  selectedValue: _selectedCurrency,
+                ),
+              ],
+              onFiltersChanged: (filters) {
+                setState(() => _selectedCurrency = filters['currency']);
+                _applyFilters();
+              },
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
+                      children: [
+                        // Paiements en attente
+                        _filteredPendingPayments.isEmpty
+                            ? const Center(child: Text('Aucun paiement en attente'))
+                            : RefreshIndicator(
+                                onRefresh: _loadPayments,
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _filteredPendingPayments.length,
+                                  itemBuilder: (context, index) {
+                                    final payment = _filteredPendingPayments[index];
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 16),
                                 child: ListTile(
@@ -147,17 +261,17 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                               );
                             },
                           ),
-                        ),
-                  // Historique des paiements
-                  _payments.isEmpty
-                      ? const Center(child: Text('Aucun paiement effectué'))
-                      : RefreshIndicator(
-                          onRefresh: _loadPayments,
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: _payments.length,
-                            itemBuilder: (context, index) {
-                              final payment = _payments[index];
+                                ),
+                        // Historique des paiements
+                        _filteredPayments.isEmpty
+                            ? const Center(child: Text('Aucun paiement effectué'))
+                            : RefreshIndicator(
+                                onRefresh: _loadPayments,
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _filteredPayments.length,
+                                  itemBuilder: (context, index) {
+                                    final payment = _filteredPayments[index];
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 16),
                                 child: ListTile(
@@ -177,12 +291,27 @@ class _PaymentsPageState extends ConsumerState<PaymentsPage> {
                                         ),
                                     ],
                                   ),
-                                  trailing: payment['receipt'] != null
-                                      ? IconButton(
-                                          icon: const Icon(Icons.receipt),
-                                          onPressed: () {
-                                            // TODO: Voir le reçu
-                                          },
+                                  trailing: payment['status'] == 'COMPLETED'
+                                      ? Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(Icons.download),
+                                              onPressed: () {
+                                                _downloadReceipt(
+                                                  payment['id'],
+                                                  payment['payment_id']?.toString() ?? payment['id'].toString(),
+                                                );
+                                              },
+                                              tooltip: 'Télécharger le reçu',
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(Icons.receipt),
+                                              onPressed: () {
+                                                context.push('/payments/${payment['id']}/receipt');
+                                              },
+                                            ),
+                                          ],
                                         )
                                       : null,
                                 ),

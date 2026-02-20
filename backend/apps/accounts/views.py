@@ -160,7 +160,7 @@ class StudentViewSet(viewsets.ModelViewSet):
         'school_class', 'academic_year', 'user__school', 'is_former_student',
         'school_class__is_terminal'
     ]
-    search_fields = ['user__username', 'student_id', 'user__first_name', 'user__last_name']
+    search_fields = ['user__username', 'student_id', 'user__first_name', 'user__last_name', 'user__middle_name']
     
     def get_queryset(self):
         queryset = Student.objects.select_related(

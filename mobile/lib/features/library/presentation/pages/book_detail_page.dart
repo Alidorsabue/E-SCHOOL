@@ -197,17 +197,18 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             const SizedBox(height: 24),
-            if (_isDownloaded)
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Ouvrir le livre
-                },
-                icon: const Icon(Icons.book),
-                label: const Text('Lire le livre'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48),
-                ),
+            ElevatedButton.icon(
+              onPressed: _isDownloaded || _book!['file_url'] != null
+                  ? () {
+                      context.push('/library/${widget.bookId}/read');
+                    }
+                  : null,
+              icon: const Icon(Icons.book),
+              label: Text(_isDownloaded ? 'Lire le livre' : 'Télécharger et lire'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
               ),
+            ),
           ],
         ),
       ),

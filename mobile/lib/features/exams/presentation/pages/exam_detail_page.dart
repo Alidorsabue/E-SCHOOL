@@ -15,6 +15,7 @@ class ExamDetailPage extends ConsumerStatefulWidget {
 
 class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
   Map<String, dynamic>? _exam;
+  List<dynamic> _attempts = [];
   bool _isLoading = true;
 
   @override
@@ -29,9 +30,18 @@ class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
     });
 
     try {
-      final response = await ApiService().get('/api/elearning/quizzes/${widget.examId}/');
+      final [examRes, attemptsRes] = await Future.wait([
+        ApiService().get('/api/elearning/quizzes/${widget.examId}/'),
+        ApiService().get('/api/elearning/quiz-attempts/', queryParameters: {
+          'quiz': widget.examId,
+        }),
+      ]);
+      
       setState(() {
-        _exam = response.data as Map<String, dynamic>;
+        _exam = examRes.data as Map<String, dynamic>;
+        _attempts = attemptsRes.data is List 
+            ? attemptsRes.data 
+            : (attemptsRes.data['results'] ?? []);
         _isLoading = false;
       });
     } catch (e) {
@@ -47,10 +57,12 @@ class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
         'quiz': widget.examId,
       });
 
-      // TODO: Naviguer vers l'écran de l'examen
-      if (mounted) {
+      final attemptId = response.data['id'] as int?;
+      if (attemptId != null && mounted) {
+        context.push('/exams/${widget.examId}/take/$attemptId');
+      } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Examen démarré')),
+          const SnackBar(content: Text('Erreur: ID de tentative non reçu')),
         );
       }
     } catch (e) {
@@ -145,17 +157,99 @@ class _ExamDetailPageState extends ConsumerState<ExamDetailPage> {
                 ),
               ),
             ),
+            // Afficher les scores des tentatives
+            if (_attempts.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Card(
+                color: Colors.blue.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.quiz, color: Colors.blue),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Mes tentatives',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      ..._attempts.map((attempt) {
+                        final score = attempt['score']?.toDouble();
+                        final maxPoints = attempt['total_points']?.toDouble() ?? _exam!['total_points']?.toDouble() ?? 20;
+                        final isCompleted = attempt['completed_at'] != null;
+                        
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isCompleted ? 'Tentative complétée' : 'Tentative en cours',
+                                    style: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                  if (attempt['completed_at'] != null)
+                                    Text(
+                                      DateFormat('dd/MM/yyyy HH:mm').format(
+                                        DateTime.parse(attempt['completed_at']),
+                                      ),
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    ),
+                                ],
+                              ),
+                              if (score != null)
+                                Text(
+                                  '$score / $maxPoints',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blue,
+                                      ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                      if (_attempts.isNotEmpty && _attempts.any((a) => a['score'] != null)) ...[
+                        const Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Meilleure tentative:'),
+                            Text(
+                              '${_attempts.where((a) => a['score'] != null).map((a) => a['score'] as num).reduce((a, b) => a > b ? a : b)} / ${_attempts.first['total_points']?.toDouble() ?? _exam!['total_points']?.toDouble() ?? 20}',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
-            if (canStart)
+            if (canStart && (_exam!['allow_multiple_attempts'] == true || _attempts.isEmpty))
               ElevatedButton.icon(
                 onPressed: _startExam,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Commencer l\'examen'),
+                label: Text(_attempts.isNotEmpty ? 'Reprendre l\'examen' : 'Commencer l\'examen'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),
               )
-            else
+            else if (!canStart)
               Card(
                 color: Colors.orange.shade50,
                 child: Padding(

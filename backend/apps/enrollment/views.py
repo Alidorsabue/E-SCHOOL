@@ -224,6 +224,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             email=application.email or f"{username}@eschool.rdc",
             first_name=application.first_name,
             last_name=application.last_name,
+            middle_name=application.middle_name or None,
             phone=application.phone,
             role='STUDENT',
             school=application.school,

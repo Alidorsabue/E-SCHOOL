@@ -19,7 +19,8 @@ class User(AbstractUser):
         ('DISCIPLINE_OFFICER', 'Chargé de discipline'),
     ]
     
-    # Basic info
+    # Basic info (first_name, last_name hérités d'AbstractUser; postnom pour élève)
+    middle_name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Postnom")
     phone = models.CharField(max_length=20, null=True, blank=True, verbose_name="Téléphone")
     school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='users', null=True, blank=True, verbose_name="École")
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, verbose_name="Rôle")
@@ -45,6 +46,13 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+
+    def get_full_name(self):
+        """Nom complet : first_name + last_name + middle_name (postnom)."""
+        parts = [self.first_name, self.last_name]
+        if self.middle_name:
+            parts.append(self.middle_name)
+        return " ".join(filter(None, parts)).strip() or self.username
     
     @property
     def is_admin(self):

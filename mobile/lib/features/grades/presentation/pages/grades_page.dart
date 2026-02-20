@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 
 class GradesPage extends ConsumerStatefulWidget {
   const GradesPage({super.key});
@@ -15,7 +17,16 @@ class _GradesPageState extends ConsumerState<GradesPage> {
   List<dynamic> _children = [];
   int? _selectedChildId;
   List<dynamic> _grades = [];
+  List<dynamic> _filteredGrades = [];
+  List<dynamic> _gradeBulletins = [];
+  List<dynamic> _reportCards = [];
+  List<dynamic> _submissions = [];
+  List<dynamic> _quizAttempts = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedSubject;
+  List<dynamic> _subjects = [];
+  bool _isStudent = false;
 
   @override
   void initState() {
@@ -26,9 +37,11 @@ class _GradesPageState extends ConsumerState<GradesPage> {
   Future<void> _loadData() async {
     final user = ref.read(authProvider).user;
     final isParent = user?.isParent ?? false;
+    final isStudent = user?.isStudent ?? false;
 
     setState(() {
       _isLoading = true;
+      _isStudent = isStudent ?? false;
     });
 
     try {
@@ -40,10 +53,43 @@ class _GradesPageState extends ConsumerState<GradesPage> {
         }
       }
       await _loadGrades();
+      
+      // Pour les élèves : charger aussi les bulletins et rapports
+      if (isStudent) {
+        await _loadStudentGradeData();
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadStudentGradeData() async {
+    try {
+      final [bulletinsRes, reportCardsRes, submissionsRes, attemptsRes] = await Future.wait([
+        ApiService().get('/api/academics/grade-bulletins/'),
+        ApiService().get('/api/academics/report-cards/'),
+        ApiService().get('/api/elearning/submissions/'),
+        ApiService().get('/api/elearning/quiz-attempts/'),
+      ]);
+
+      setState(() {
+        _gradeBulletins = bulletinsRes.data is List 
+            ? bulletinsRes.data 
+            : (bulletinsRes.data['results'] ?? []);
+        _reportCards = reportCardsRes.data is List 
+            ? reportCardsRes.data 
+            : (reportCardsRes.data['results'] ?? []);
+        _submissions = submissionsRes.data is List 
+            ? submissionsRes.data 
+            : (submissionsRes.data['results'] ?? []);
+        _quizAttempts = attemptsRes.data is List 
+            ? attemptsRes.data 
+            : (attemptsRes.data['results'] ?? []);
+      });
+    } catch (e) {
+      // Ignore errors
     }
   }
 
@@ -100,9 +146,22 @@ class _GradesPageState extends ConsumerState<GradesPage> {
               ? (data['results'] as List)
               : <dynamic>[];
       final grades = list is List<dynamic> ? list : List<dynamic>.from(list);
+      // Charger les matières pour les filtres
+      try {
+        final subjectsResponse = await ApiService().get('/api/schools/subjects/');
+        setState(() {
+          _subjects = subjectsResponse.data is List
+              ? subjectsResponse.data
+              : (subjectsResponse.data['results'] ?? []);
+        });
+      } catch (e) {
+        // Ignore
+      }
+      
       if (mounted) {
         setState(() {
           _grades = grades;
+          _applyFilters();
           _isLoading = false;
         });
       }
@@ -113,6 +172,31 @@ class _GradesPageState extends ConsumerState<GradesPage> {
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filteredGrades = _grades.where((grade) {
+        // Recherche
+        if (_searchQuery.isNotEmpty) {
+          final courseName = (grade['course']?['name'] ?? '').toString().toLowerCase();
+          final assignmentTitle = (grade['assignment']?['title'] ?? '').toString().toLowerCase();
+          final examTitle = (grade['exam']?['title'] ?? '').toString().toLowerCase();
+          if (!courseName.contains(_searchQuery.toLowerCase()) &&
+              !assignmentTitle.contains(_searchQuery.toLowerCase()) &&
+              !examTitle.contains(_searchQuery.toLowerCase())) {
+            return false;
+          }
+        }
+        // Filtre matière
+        if (_selectedSubject != null) {
+          if (grade['subject']?['id']?.toString() != _selectedSubject) {
+            return false;
+          }
+        }
+        return true;
+      }).toList();
+    });
+  }
+
   Color _getGradeColor(double? score, double? maxScore) {
     if (score == null || maxScore == null) return Colors.grey;
     final percentage = (score / maxScore) * 100;
@@ -121,11 +205,56 @@ class _GradesPageState extends ConsumerState<GradesPage> {
     return Colors.red;
   }
 
+  Future<void> _downloadBulletin(int? schoolClassId, String? academicYear) async {
+    if (schoolClassId == null || academicYear == null) return;
+    
+    try {
+      final user = ref.read(authProvider).user;
+      final studentId = user?.id;
+      if (studentId == null) return;
+      
+      final api = ApiService();
+      final baseUrl = api.baseUrl;
+      final url = '$baseUrl/api/accounts/students/$studentId/bulletin_pdf/?school_class=$schoolClassId&academic_year=${Uri.encodeComponent(academicYear)}';
+      
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final isParent = user?.isParent ?? false;
     final isStudent = user?.isStudent ?? false;
+
+    // Vue spéciale pour les élèves avec bulletins RDC
+    if (isStudent) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Mes Notes'),
+          bottom: TabBar(
+            tabs: const [
+              Tab(text: 'Bulletins RDC', icon: Icon(Icons.description)),
+              Tab(text: 'Notes détaillées', icon: Icon(Icons.list)),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            // Vue bulletins RDC
+            _buildBulletinsView(),
+            // Vue notes détaillées
+            _buildDetailedGradesView(isParent),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -160,11 +289,34 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                 },
               ),
             ),
+          // Barre de recherche et filtres
+          SearchFilterBar(
+            hintText: 'Rechercher une note...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+            filters: [
+              FilterOption(
+                key: 'subject',
+                label: 'Matière',
+                values: _subjects.map((s) => FilterValue(
+                  value: s['id'].toString(),
+                  label: s['name'] ?? 'Matière',
+                )).toList(),
+                selectedValue: _selectedSubject,
+              ),
+            ],
+            onFiltersChanged: (filters) {
+              setState(() => _selectedSubject = filters['subject']);
+              _applyFilters();
+            },
+          ),
           // Liste des notes
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _grades.isEmpty
+                : _filteredGrades.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -188,9 +340,9 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                         onRefresh: _loadGrades,
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
-                          itemCount: _grades.length,
+                          itemCount: _filteredGrades.length,
                           itemBuilder: (context, index) {
-                            final grade = _grades[index];
+                            final grade = _filteredGrades[index];
                             final score = grade['score']?.toDouble();
                             final maxScore = grade['max_score']?.toDouble();
 
@@ -241,6 +393,250 @@ class _GradesPageState extends ConsumerState<GradesPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBulletinsView() {
+    // Grouper les bulletins par année/classe
+    final Map<String, List<dynamic>> bulletinsByYear = {};
+    for (var bulletin in _gradeBulletins) {
+      final key = '${bulletin['academic_year']}-${bulletin['school_class']}';
+      if (!bulletinsByYear.containsKey(key)) {
+        bulletinsByYear[key] = [];
+      }
+      bulletinsByYear[key]!.add(bulletin);
+    }
+
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (bulletinsByYear.isEmpty && _reportCards.isEmpty) {
+      return const Center(child: Text('Aucun bulletin disponible'));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Bulletins RDC par matière
+          if (bulletinsByYear.isNotEmpty) ...[
+            ...bulletinsByYear.entries.map((entry) {
+              final yearClass = entry.key.split('-');
+              final academicYear = yearClass[0];
+              final schoolClassId = yearClass.length > 1 ? int.tryParse(yearClass[1]) : null;
+              final bulletins = entry.value;
+              
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Année: $academicYear',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: () => _downloadBulletin(schoolClassId, academicYear),
+                            icon: const Icon(Icons.download),
+                            label: const Text('Télécharger PDF'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: const [
+                          DataColumn(label: Text('Matière')),
+                          DataColumn(label: Text('1ère P.'), numeric: true),
+                          DataColumn(label: Text('2ème P.'), numeric: true),
+                          DataColumn(label: Text('Exam. S1'), numeric: true),
+                          DataColumn(label: Text('TOT. S1'), numeric: true),
+                          DataColumn(label: Text('3ème P.'), numeric: true),
+                          DataColumn(label: Text('4ème P.'), numeric: true),
+                          DataColumn(label: Text('Exam. S2'), numeric: true),
+                          DataColumn(label: Text('TOT. S2'), numeric: true),
+                          DataColumn(label: Text('T.G.'), numeric: true),
+                        ],
+                        rows: bulletins.map((b) {
+                          return DataRow(
+                            cells: [
+                              DataCell(Text(b['subject_name'] ?? '-')),
+                              DataCell(Text(b['s1_p1']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['s1_p2']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['s1_exam']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['total_s1']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['s2_p3']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['s2_p4']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['s2_exam']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(b['total_s2']?.toStringAsFixed(1) ?? '-')),
+                              DataCell(Text(
+                                b['total_general']?.toStringAsFixed(1) ?? '-',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              )),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
+          ],
+          // Bulletins (décision)
+          if (_reportCards.isNotEmpty) ...[
+            Text(
+              'Bulletins (décision)',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            ..._reportCards.map((card) {
+              return Card(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  title: Text('${card['academic_year'] ?? ''} - ${card['class_name'] ?? ''}'),
+                  subtitle: Text('Décision: ${card['decision'] ?? '-'}'),
+                  trailing: card['school_class'] != null && card['academic_year'] != null
+                      ? IconButton(
+                          icon: const Icon(Icons.download),
+                          onPressed: () {
+                            _downloadBulletin(
+                              card['school_class'],
+                              card['academic_year'],
+                            );
+                          },
+                        )
+                      : null,
+                ),
+              );
+            }),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailedGradesView(bool isParent) {
+    // Vue agrégée par matière avec notes e-learning
+    final Map<String, List<dynamic>> gradesBySubject = {};
+    
+    // Ajouter les notes générales
+    for (var grade in _grades) {
+      final subject = grade['subject']?['name'] ?? grade['course']?['name'] ?? 'Autre';
+      if (!gradesBySubject.containsKey(subject)) {
+        gradesBySubject[subject] = [];
+      }
+      gradesBySubject[subject]!.add({'type': 'general', 'data': grade});
+    }
+    
+    // Ajouter les soumissions (devoirs)
+    for (var submission in _submissions) {
+      if (submission['score'] == null) continue;
+      final subject = submission['assignment_subject_name'] ?? submission['assignment_title'] ?? 'Autre';
+      if (!gradesBySubject.containsKey(subject)) {
+        gradesBySubject[subject] = [];
+      }
+      gradesBySubject[subject]!.add({'type': 'assignment', 'data': submission});
+    }
+    
+    // Ajouter les tentatives de quiz (examens)
+    for (var attempt in _quizAttempts) {
+      if (attempt['score'] == null) continue;
+      final subject = attempt['quiz_subject_name'] ?? attempt['quiz_title'] ?? 'Autre';
+      if (!gradesBySubject.containsKey(subject)) {
+        gradesBySubject[subject] = [];
+      }
+      gradesBySubject[subject]!.add({'type': 'quiz', 'data': attempt});
+    }
+
+    return Column(
+      children: [
+        SearchFilterBar(
+          hintText: 'Rechercher une note...',
+          onSearchChanged: (value) {
+            setState(() => _searchQuery = value);
+            _applyFilters();
+          },
+        ),
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : gradesBySubject.isEmpty
+                  ? const Center(child: Text('Aucune note disponible'))
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: gradesBySubject.length,
+                        itemBuilder: (context, index) {
+                          final entry = gradesBySubject.entries.elementAt(index);
+                          final subject = entry.key;
+                          final items = entry.value;
+                          
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: ExpansionTile(
+                              title: Text(subject, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text('${items.length} note(s)'),
+                              children: items.map((item) {
+                                final data = item['data'];
+                                final type = item['type'];
+                                
+                                if (type == 'general') {
+                                  final score = data['score']?.toDouble();
+                                  final maxScore = data['max_score']?.toDouble();
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      backgroundColor: _getGradeColor(score, maxScore),
+                                      child: Text(
+                                        score != null && maxScore != null
+                                            ? '${((score / maxScore) * 100).toInt()}'
+                                            : '?',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    title: Text(data['course']?['name'] ?? 'Note'),
+                                    subtitle: Text(
+                                      score != null && maxScore != null
+                                          ? '${score.toStringAsFixed(2)} / ${maxScore.toStringAsFixed(2)}'
+                                          : '-',
+                                    ),
+                                  );
+                                } else if (type == 'assignment') {
+                                  final score = data['score']?.toDouble();
+                                  final maxPoints = data['assignment']?['total_points']?.toDouble() ?? data['total_points']?.toDouble() ?? 20;
+                                  return ListTile(
+                                    leading: const Icon(Icons.assignment),
+                                    title: Text(data['assignment_title'] ?? 'Devoir'),
+                                    subtitle: Text('${score?.toStringAsFixed(2) ?? '-'} / $maxPoints'),
+                                  );
+                                } else if (type == 'quiz') {
+                                  final score = data['score']?.toDouble();
+                                  final maxPoints = data['quiz']?['total_points']?.toDouble() ?? data['total_points']?.toDouble() ?? 20;
+                                  return ListTile(
+                                    leading: const Icon(Icons.quiz),
+                                    title: Text(data['quiz_title'] ?? 'Examen'),
+                                    subtitle: Text('${score?.toStringAsFixed(2) ?? '-'} / $maxPoints'),
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ],
     );
   }
 }

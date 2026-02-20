@@ -72,11 +72,64 @@ class ProfilePage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Préférences'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      context.push('/preferences');
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline),
+                    title: const Text('Aide'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      // TODO: Page d'aide
+                    },
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.info_outline),
+                    title: const Text('À propos'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      // TODO: Page à propos
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () async {
-                await ref.read(authProvider.notifier).logout();
-                if (context.mounted) {
-                  context.go('/login');
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Déconnexion'),
+                    content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('Annuler'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                        child: const Text('Déconnexion'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirmed == true) {
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go('/login');
+                  }
                 }
               },
               icon: const Icon(Icons.logout),

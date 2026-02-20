@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/network/api_service.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
+import '../widgets/message_compose_modal.dart';
 
 /// Communication — annonces et messages (synchronisé avec le web).
 class CommunicationPage extends ConsumerStatefulWidget {
@@ -15,8 +17,13 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
   List<dynamic> _announcements = [];
   List<dynamic> _messages = [];
   List<dynamic> _notifications = [];
+  List<dynamic> _filteredAnnouncements = [];
+  List<dynamic> _filteredMessages = [];
+  List<dynamic> _filteredNotifications = [];
   bool _isLoading = true;
   late TabController _tabController;
+  String _searchQuery = '';
+  int _currentTab = 0;
 
   @override
   void initState() {
@@ -55,6 +62,7 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
           _announcements = list(results[0].data);
           _messages = list(results[1].data);
           _notifications = list(results[2].data);
+          _applyFilters();
           _isLoading = false;
         });
       }
@@ -68,13 +76,60 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filteredAnnouncements = _announcements.where((a) {
+        if (_searchQuery.isNotEmpty) {
+          final title = (a['title'] ?? '').toString().toLowerCase();
+          final message = (a['message'] ?? '').toString().toLowerCase();
+          return title.contains(_searchQuery.toLowerCase()) ||
+              message.contains(_searchQuery.toLowerCase());
+        }
+        return true;
+      }).toList();
+      
+      _filteredMessages = _messages.where((m) {
+        if (_searchQuery.isNotEmpty) {
+          final subject = (m['subject'] ?? '').toString().toLowerCase();
+          return subject.contains(_searchQuery.toLowerCase());
+        }
+        return true;
+      }).toList();
+      
+      _filteredNotifications = _notifications.where((n) {
+        if (_searchQuery.isNotEmpty) {
+          final title = (n['title'] ?? '').toString().toLowerCase();
+          final message = (n['message'] ?? '').toString().toLowerCase();
+          return title.contains(_searchQuery.toLowerCase()) ||
+              message.contains(_searchQuery.toLowerCase());
+        }
+        return true;
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Communication'),
+        actions: [
+          if (_currentTab == 1) // Messages tab
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const MessageComposeModal(),
+                );
+              },
+            ),
+        ],
         bottom: TabBar(
           controller: _tabController,
+          onTap: (index) {
+            setState(() => _currentTab = index);
+          },
           tabs: const [
             Tab(text: 'Annonces', icon: Icon(Icons.campaign)),
             Tab(text: 'Messages', icon: Icon(Icons.mail)),
@@ -82,12 +137,22 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _listView('Annonces', _announcements, (a) {
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _listView('Annonces', _filteredAnnouncements, (a) {
                   final title = a['title'] ?? a['message'] ?? 'Sans titre';
                   final message = a['message'] ?? a['title'] ?? '';
                   final createdAt = a['created_at'] ?? a['published_at'];
@@ -97,7 +162,7 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
                     isThreeLine: true,
                   );
                 }),
-                _listView('Messages', _messages, (m) {
+                      _listView('Messages', _filteredMessages, (m) {
                   final subject = m['subject'] ?? 'Sans objet';
                   final created = m['created_at'];
                   return ListTile(
@@ -106,7 +171,7 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
                     leading: CircleAvatar(child: Icon(m['is_read'] == true ? Icons.drafts : Icons.mail)),
                   );
                 }),
-                _listView('Notifications', _notifications, (n) {
+                      _listView('Notifications', _filteredNotifications, (n) {
                   final title = n['title'] ?? n['notification_type'] ?? 'Notification';
                   final message = n['message'] ?? '';
                   final createdAt = n['created_at'];
@@ -117,8 +182,11 @@ class _CommunicationPageState extends ConsumerState<CommunicationPage> with Sing
                     isThreeLine: true,
                   );
                 }),
-              ],
-            ),
+                    ],
+                  ),
+                ),
+        ],
+      ),
     );
   }
 

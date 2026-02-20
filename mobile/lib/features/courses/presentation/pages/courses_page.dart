@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/database/hive_service.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 
 class CoursesPage extends ConsumerStatefulWidget {
   const CoursesPage({super.key});
@@ -14,8 +15,10 @@ class CoursesPage extends ConsumerStatefulWidget {
 
 class _CoursesPageState extends ConsumerState<CoursesPage> {
   List<dynamic> _courses = [];
+  List<dynamic> _filteredCourses = [];
   bool _isLoading = true;
   bool _isOffline = false;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -44,7 +47,10 @@ class _CoursesPageState extends ConsumerState<CoursesPage> {
       // Charger depuis l'API
       final response = await ApiService().get('/api/elearning/courses/', useCache: true);
       setState(() {
-        _courses = response.data as List<dynamic>;
+        _courses = response.data is List<dynamic>
+            ? response.data
+            : (response.data['results'] ?? []);
+        _applyFilters();
         _isLoading = false;
         _isOffline = false;
       });
@@ -59,23 +65,39 @@ class _CoursesPageState extends ConsumerState<CoursesPage> {
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filteredCourses = _courses.where((course) {
+        if (_searchQuery.isNotEmpty) {
+          final title = (course['title'] ?? '').toString().toLowerCase();
+          final description = (course['description'] ?? '').toString().toLowerCase();
+          return title.contains(_searchQuery.toLowerCase()) ||
+              description.contains(_searchQuery.toLowerCase());
+        }
+        return true;
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mes Cours'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Recherche
+      ),
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher un cours...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
             },
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _courses.isEmpty
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredCourses.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -95,13 +117,13 @@ class _CoursesPageState extends ConsumerState<CoursesPage> {
                     ],
                   ),
                 )
-              : RefreshIndicator(
-                  onRefresh: () => _loadCourses(useCache: false),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _courses.length,
-                    itemBuilder: (context, index) {
-                      final course = _courses[index];
+                    : RefreshIndicator(
+                        onRefresh: () => _loadCourses(useCache: false),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredCourses.length,
+                          itemBuilder: (context, index) {
+                            final course = _filteredCourses[index];
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
                         child: ListTile(
@@ -142,9 +164,12 @@ class _CoursesPageState extends ConsumerState<CoursesPage> {
                           },
                         ),
                       );
-                    },
-                  ),
-                ),
+                            },
+                          ),
+                        ),
+                      ),
+        ],
+      ),
     );
   }
 }

@@ -223,7 +223,7 @@ export default function AdminMeetings() {
                   <option value="">Sélectionner un enseignant</option>
                   {teachers?.results?.map((teacher: any) => (
                     <option key={teacher.id} value={teacher.id}>
-                      {teacher.user?.first_name} {teacher.user?.last_name}
+                      {userFullName(teacher.user)}
                     </option>
                   ))}
                 </select>
@@ -332,7 +332,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {student.user?.first_name} {student.user?.last_name} - {student.student_id}
+                          {userFullName(student.user)} - {student.student_id}
                         </span>
                       </label>
                     ))}
@@ -344,7 +344,7 @@ export default function AdminMeetings() {
                       const student = students?.results?.find((s: any) => s.id === studentId)
                       return student ? (
                         <span key={studentId} className="badge badge-info flex items-center gap-1">
-                          {student.user?.first_name} {student.user?.last_name}
+                          {userFullName(student.user)}
                           <button
                             type="button"
                             onClick={() => toggleStudent(studentId)}
@@ -382,7 +382,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {parent.user?.first_name} {parent.user?.last_name}
+                          {userFullName(parent.user)}
                         </span>
                       </label>
                     ))}
@@ -394,7 +394,7 @@ export default function AdminMeetings() {
                       const parent = parents?.results?.find((p: any) => p.id === parentId)
                       return parent ? (
                         <span key={parentId} className="badge badge-info flex items-center gap-1">
-                          {parent.user?.first_name} {parent.user?.last_name}
+                          {userFullName(parent.user)}
                           <button
                             type="button"
                             onClick={() => toggleParent(parentId)}
@@ -421,7 +421,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un parent</option>
                     {parents?.results?.map((parent: any) => (
                       <option key={parent.id} value={parent.id}>
-                        {parent.user?.first_name} {parent.user?.last_name}
+                        {userFullName(parent.user)}
                       </option>
                     ))}
                   </select>
@@ -434,7 +434,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un élève</option>
                     {students?.results?.map((student: any) => (
                       <option key={student.id} value={student.id}>
-                        {student.user?.first_name} {student.user?.last_name} - {student.student_id}
+                        {userFullName(student.user)} - {student.student_id}
                       </option>
                     ))}
                   </select>
@@ -468,7 +468,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {teacher.user?.first_name} {teacher.user?.last_name}
+                          {userFullName(teacher.user)}
                         </span>
                       </label>
                     ))}
@@ -480,7 +480,7 @@ export default function AdminMeetings() {
                       const teacher = teachers?.results?.find((t: any) => t.id === teacherId)
                       return teacher ? (
                         <span key={teacherId} className="badge badge-info flex items-center gap-1">
-                          {teacher.user?.first_name} {teacher.user?.last_name}
+                          {userFullName(teacher.user)}
                           <button
                             type="button"
                             onClick={() => {
@@ -518,7 +518,7 @@ export default function AdminMeetings() {
                           className="rounded"
                         />
                         <span className="text-sm text-gray-900 dark:text-gray-100">
-                          {parent.user?.first_name} {parent.user?.last_name}
+                          {userFullName(parent.user)}
                         </span>
                       </label>
                     ))}
@@ -530,7 +530,7 @@ export default function AdminMeetings() {
                       const parent = parents?.results?.find((p: any) => p.id === parentId)
                       return parent ? (
                         <span key={parentId} className="badge badge-info flex items-center gap-1">
-                          {parent.user?.first_name} {parent.user?.last_name}
+                          {userFullName(parent.user)}
                           <button
                             type="button"
                             onClick={() => toggleParent(parentId)}
@@ -557,7 +557,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un parent</option>
                     {parents?.results?.map((parent: any) => (
                       <option key={parent.id} value={parent.id}>
-                        {parent.user?.first_name} {parent.user?.last_name}
+                        {userFullName(parent.user)}
                       </option>
                     ))}
                   </select>
@@ -570,7 +570,7 @@ export default function AdminMeetings() {
                     <option value="">Sélectionner un élève</option>
                     {students?.results?.map((student: any) => (
                       <option key={student.id} value={student.id}>
-                        {student.user?.first_name} {student.user?.last_name} - {student.student_id}
+                        {userFullName(student.user)} - {student.student_id}
                       </option>
                     ))}
                   </select>

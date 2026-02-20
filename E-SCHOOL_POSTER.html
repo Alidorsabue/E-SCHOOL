@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-School Management - Plateforme Scolaire Digitale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+
+        .poster {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: #ffffff;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid #2563eb;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #1e40af;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .header .tagline {
+            font-size: 18px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            color: #1e40af;
+            margin-bottom: 12px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e7ff;
+            font-weight: 600;
+        }
+
+        .why-section {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .why-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .why-section li {
+            padding: 8px 0 8px 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .why-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .feature-card h4 {
+            font-size: 15px;
+            color: #1e40af;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .feature-card p {
+            font-size: 12px;
+            color: #475569;
+            line-height: 1.5;
+        }
+
+        .roles-section {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .role-card {
+            background: #ffffff;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .role-card h3 {
+            font-size: 18px;
+            color: #1e40af;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e7ff;
+            font-weight: 600;
+        }
+
+        .role-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .role-card li {
+            padding: 5px 0 5px 20px;
+            position: relative;
+            font-size: 12px;
+            color: #475569;
+        }
+
+        .role-card li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .tech-highlights {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .tech-highlights h3 {
+            font-size: 18px;
+            color: #1e40af;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .tech-highlights p {
+            font-size: 12px;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 2px solid #e0e7ff;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        @media print {
+            .poster {
+                max-width: 100%;
+                padding: 10mm;
+            }
+            
+            body {
+                background: white;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="poster">
+        <!-- En-tête -->
+        <div class="header">
+            <h1>E-SCHOOL MANAGEMENT</h1>
+            <p class="tagline">Plateforme Scolaire Digitale Complète pour les Écoles Privées</p>
+        </div>
+
+        <!-- Pourquoi E-School -->
+        <div class="section">
+            <h2 class="section-title">Pourquoi Choisir E-School ?</h2>
+            <div class="why-section">
+                <ul>
+                    <li><strong>Solution Tout-en-Un</strong> : Gestion complète du cycle de vie scolaire en une seule plateforme</li>
+                    <li><strong>Multi-Écoles</strong> : Architecture multi-tenant permettant de gérer plusieurs écoles indépendamment</li>
+                    <li><strong>Accessibilité</strong> : Application mobile (Android/iOS) + Interface web pour tous les acteurs</li>
+                    <li><strong>Mode Hors-Ligne</strong> : Fonctionne même avec une connexion internet limitée</li>
+                    <li><strong>Sécurité Renforcée</strong> : Isolation des données, authentification JWT, permissions par rôle</li>
+                    <li><strong>Communication Intégrée</strong> : SMS, WhatsApp, notifications in-app pour rester connecté</li>
+                    <li><strong>Optimisé pour l'Afrique</strong> : Conçu pour les réalités des écoles africaines (Mobile Money, faible connectivité)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Fonctionnalités Principales -->
+        <div class="section">
+            <h2 class="section-title">Fonctionnalités Principales</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>📝 Inscription & Réinscription</h4>
+                    <p>Workflow d'approbation, génération automatique de matricules, gestion des dossiers élèves</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Suivi Scolaire</h4>
+                    <p>Notes, présences/absences, discipline, bulletins avec calcul automatique des moyennes</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💻 E-Learning</h4>
+                    <p>Cours en ligne, devoirs, quiz interactifs avec suivi des tentatives et scores</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📚 Bibliothèque Numérique</h4>
+                    <p>Catalogue de livres (gratuits/payants), suivi de progression de lecture</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💳 Paiements</h4>
+                    <p>Gestion des frais scolaires, plans de paiement, Mobile Money, génération de reçus</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💬 Communication</h4>
+                    <p>Messages, SMS, WhatsApp, annonces, réunions parent-enseignant avec visioconférence</p>
+                </div>
+                <div class="feature-card">
+                    <h4>👨‍🏫 Encadrement</h4>
+                    <p>Suivi à domicile, conseils pédagogiques, rapports d'encadrement périodiques</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📈 Statistiques</h4>
+                    <p>Tableaux de bord analytiques, rapports PDF automatiques, suivi des performances</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fonctionnalités par Rôle -->
+        <div class="section">
+            <h2 class="section-title">Fonctionnalités par Rôle</h2>
+            <div class="roles-section">
+                <!-- Administrateur -->
+                <div class="role-card">
+                    <h3>👨‍💼 Administrateur École</h3>
+                    <ul>
+                        <li>Gestion complète de l'école (classes, matières, sections)</li>
+                        <li>Gestion des utilisateurs (enseignants, parents, élèves)</li>
+                        <li>Approbation des inscriptions et réinscriptions</li>
+                        <li>Gestion des paiements et frais scolaires</li>
+                        <li>Statistiques et rapports de l'école</li>
+                        <li>Configuration des paramètres scolaires</li>
+                        <li>Gestion de la bibliothèque numérique</li>
+                    </ul>
+                </div>
+
+                <!-- Enseignant -->
+                <div class="role-card">
+                    <h3>👩‍🏫 Enseignant</h3>
+                    <ul>
+                        <li>Gestion des classes et élèves assignés</li>
+                        <li>Saisie des notes (contrôle continu + examens)</li>
+                        <li>Gestion des présences/absences</li>
+                        <li>Création de cours en ligne avec vidéos</li>
+                        <li>Création et correction de devoirs</li>
+                        <li>Création de quiz interactifs</li>
+                        <li>Planification de réunions avec parents</li>
+                        <li>Fiches de discipline (comportement)</li>
+                        <li>Encadrement à domicile et conseils</li>
+                    </ul>
+                </div>
+
+                <!-- Parent -->
+                <div class="role-card">
+                    <h3>👨‍👩‍👧 Parent</h3>
+                    <ul>
+                        <li>Suivi des enfants (notes, moyennes, présences)</li>
+                        <li>Inscription et réinscription en ligne</li>
+                        <li>Consultation des bulletins scolaires</li>
+                        <li>Paiement des frais scolaires en ligne</li>
+                        <li>Réunions avec les enseignants</li>
+                        <li>Encadrement à domicile et conseils</li>
+                        <li>Accès à la bibliothèque numérique</li>
+                        <li>Notifications SMS/WhatsApp</li>
+                        <li>Messages avec l'école</li>
+                    </ul>
+                </div>
+
+                <!-- Élève -->
+                <div class="role-card">
+                    <h3>🎓 Élève</h3>
+                    <ul>
+                        <li>Tableau de bord personnalisé</li>
+                        <li>Consultation des cours en ligne</li>
+                        <li>Soumission de devoirs</li>
+                        <li>Passage de quiz et examens en ligne</li>
+                        <li>Consultation des notes et bulletins</li>
+                        <li>Suivi des présences</li>
+                        <li>Accès à la bibliothèque numérique</li>
+                        <li>Mode hors-ligne pour télécharger les cours</li>
+                        <li>Notifications des nouvelles activités</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Points Techniques -->
+        <div class="tech-highlights">
+            <h3>⚙️ Avantages Techniques</h3>
+            <p><strong>Architecture Moderne :</strong> Backend Django REST Framework, Frontend React/TypeScript, Mobile Flutter</p>
+            <p><strong>Multi-Plateforme :</strong> Web (desktop/tablette) + Application mobile Android/iOS</p>
+            <p><strong>Performance :</strong> Mode hors-ligne, cache intelligent, synchronisation incrémentale</p>
+            <p><strong>Sécurité :</strong> Isolation des données par école, authentification JWT, permissions granulaires</p>
+            <p><strong>Intégrations :</strong> Mobile Money, SMS/WhatsApp (Twilio), Paiements en ligne (Stripe)</p>
+        </div>
+
+        <!-- Pied de page -->
+        <div class="footer">
+            <p><strong>E-School Management</strong> - Transformez votre école avec la technologie</p>
+            <p>Solution complète • Sécurisée • Optimisée pour l'Afrique</p>
+        </div>
+    </div>
+</body>
+</html>

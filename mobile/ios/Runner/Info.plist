@@ -24,6 +24,13 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+	<key>UIRequiresFullScreen</key>
+	<false/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,5 +52,37 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- iPhone (1) + iPad (2) -->
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
+	<!-- Réseau : autoriser HTTP en dev (désactiver en prod si tout est en HTTPS) -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<!-- Permissions (messages utilisés par les plugins) -->
+	<key>NSCameraUsageDescription</key>
+	<string>E-School peut utiliser la caméra pour prendre des photos (pièces jointes).</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>E-School accède à la photothèque pour joindre des images aux devoirs.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>E-School peut utiliser le micro si nécessaire pour des enregistrements.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Optionnel : pour des fonctionnalités basées sur la localisation.</string>
+	<!-- Notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<!-- iPad : support multi-fenêtre (optionnel) -->
+	<key>UIRequiresFullScreen</key>
+	<false/>
 </dict>
 </plist>

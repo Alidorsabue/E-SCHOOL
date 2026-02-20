@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
+import '../widgets/discipline_request_modal.dart';
 
 /// Fiches de discipline — synchronisé avec le web (Parent : enfants ; Élève : ses fiches).
 class DisciplinePage extends ConsumerStatefulWidget {
@@ -14,7 +16,14 @@ class DisciplinePage extends ConsumerStatefulWidget {
 
 class _DisciplinePageState extends ConsumerState<DisciplinePage> {
   List<dynamic> _records = [];
+  List<dynamic> _filteredRecords = [];
+  List<dynamic> _requests = [];
+  Map<int, List<dynamic>> _requestsByRecord = {};
   bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedStatus;
+  String? _selectedSeverity;
+  int? _expandedRecordId;
 
   @override
   void initState() {
@@ -26,26 +35,84 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
     setState(() => _isLoading = true);
     try {
       final api = ApiService();
-      final response = await api.get<dynamic>(
-        '/api/academics/discipline/',
-        useCache: false,
-      );
-      final data = response.data;
-      final list = data is List
-          ? data
-          : (data is Map && data['results'] != null)
-              ? (data['results'] as List)
+      final [recordsRes, requestsRes] = await Future.wait([
+        api.get<dynamic>('/api/academics/discipline/', useCache: false),
+        api.get<dynamic>('/api/academics/discipline-requests/', useCache: false),
+      ]);
+      
+      final recordsData = recordsRes.data;
+      final recordsList = recordsData is List
+          ? recordsData
+          : (recordsData is Map && recordsData['results'] != null)
+              ? (recordsData['results'] as List)
               : <dynamic>[];
-      final records = list is List<dynamic> ? list : List<dynamic>.from(list);
+      final records = recordsList is List<dynamic> ? recordsList : List<dynamic>.from(recordsList);
+      
+      final requestsData = requestsRes.data;
+      final requestsList = requestsData is List
+          ? requestsData
+          : (requestsData is Map && requestsData['results'] != null)
+              ? (requestsData['results'] as List)
+              : <dynamic>[];
+      final requests = requestsList is List<dynamic> ? requestsList : List<dynamic>.from(requestsList);
+      
+      // Grouper les demandes par discipline_record
+      final requestsByRecord = <int, List<dynamic>>{};
+      for (var request in requests) {
+        final recordId = request['discipline_record'];
+        if (recordId != null) {
+          final id = recordId is int ? recordId : (recordId is Map ? recordId['id'] : null);
+          if (id != null) {
+            if (!requestsByRecord.containsKey(id)) {
+              requestsByRecord[id] = [];
+            }
+            requestsByRecord[id]!.add(request);
+          }
+        }
+      }
+      
       if (mounted) {
         setState(() {
           _records = records;
+          _requests = requests;
+          _requestsByRecord = requestsByRecord;
+          _applyFilters();
           _isLoading = false;
         });
       }
     } catch (_) {
-      if (mounted) setState(() { _records = []; _isLoading = false; });
+      if (mounted) setState(() { _records = []; _requests = []; _requestsByRecord = {}; _isLoading = false; });
     }
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredRecords = _records.where((r) {
+        final record = r as Map? ?? {};
+        // Recherche
+        if (_searchQuery.isNotEmpty) {
+          final description = (record['description'] ?? '').toString().toLowerCase();
+          final studentName = (record['student_name'] ?? '').toString().toLowerCase();
+          if (!description.contains(_searchQuery.toLowerCase()) &&
+              !studentName.contains(_searchQuery.toLowerCase())) {
+            return false;
+          }
+        }
+        // Filtre statut
+        if (_selectedStatus != null) {
+          if ((record['status'] ?? '').toString().toUpperCase() != _selectedStatus!.toUpperCase()) {
+            return false;
+          }
+        }
+        // Filtre gravité
+        if (_selectedSeverity != null) {
+          if ((record['severity'] ?? '').toString().toUpperCase() != _selectedSeverity!.toUpperCase()) {
+            return false;
+          }
+        }
+        return true;
+      }).toList();
+    });
   }
 
   Color _severityColor(String? s) {
@@ -66,6 +133,21 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
     }
   }
 
+  String _getRequestTypeLabel(String type) {
+    switch (type) {
+      case 'APOLOGY':
+        return 'Demande d\'excuse';
+      case 'PUNISHMENT_LIFT':
+        return 'Demande de levée de punition';
+      case 'APPEAL':
+        return 'Recours';
+      case 'DISCUSSION':
+        return 'Discussion';
+      default:
+        return type;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
@@ -75,29 +157,68 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
       appBar: AppBar(
         title: const Text('Fiches de discipline'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _records.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.gavel_outlined, size: 64, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text(
-                        isParent ? 'Aucune fiche pour vos enfants' : 'Aucune fiche de discipline',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadRecords,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _records.length,
-                    itemBuilder: (context, index) {
-                      final r = _records[index] as Map? ?? {};
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher une fiche...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+            filters: [
+              FilterOption(
+                key: 'status',
+                label: 'Statut',
+                values: [
+                  FilterValue(value: 'OPEN', label: 'Ouverte'),
+                  FilterValue(value: 'RESOLVED', label: 'Résolue'),
+                  FilterValue(value: 'CLOSED', label: 'Fermée'),
+                ],
+                selectedValue: _selectedStatus,
+              ),
+              FilterOption(
+                key: 'severity',
+                label: 'Gravité',
+                values: [
+                  FilterValue(value: 'LOW', label: 'Faible'),
+                  FilterValue(value: 'MEDIUM', label: 'Moyenne'),
+                  FilterValue(value: 'HIGH', label: 'Élevée'),
+                ],
+                selectedValue: _selectedSeverity,
+              ),
+            ],
+            onFiltersChanged: (filters) {
+              setState(() {
+                _selectedStatus = filters['status'];
+                _selectedSeverity = filters['severity'];
+              });
+              _applyFilters();
+            },
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredRecords.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.gavel_outlined, size: 64, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            Text(
+                              isParent ? 'Aucune fiche pour vos enfants' : 'Aucune fiche de discipline',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadRecords,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredRecords.length,
+                          itemBuilder: (context, index) {
+                            final r = _filteredRecords[index] as Map? ?? {};
                       final type = r['type']?.toString() ?? '';
                       final severity = r['severity']?.toString() ?? '';
                       final status = r['status']?.toString() ?? '';
@@ -106,10 +227,13 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
                       final studentName = r['student_name']?.toString() ?? '';
                       final className = r['class_name']?.toString() ?? '';
 
+                      final recordId = r['id'] as int?;
+                      final recordRequests = recordId != null ? _requestsByRecord[recordId] ?? [] : [];
+                      final hasPendingRequest = recordRequests.any((req) => req['status'] == 'PENDING');
+                      
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
+                        child: ExpansionTile(
                           leading: CircleAvatar(
                             backgroundColor: _severityColor(severity),
                             child: Icon(
@@ -132,7 +256,7 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
-                                      color: _statusColor(status).withValues(alpha: 0.2),
+                                      color: _statusColor(status).withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: Text(status, style: TextStyle(fontSize: 12, color: _statusColor(status))),
@@ -143,12 +267,163 @@ class _DisciplinePageState extends ConsumerState<DisciplinePage> {
                               ),
                             ],
                           ),
-                          isThreeLine: true,
+                          trailing: isParent && recordId != null && !hasPendingRequest
+                              ? IconButton(
+                                  icon: const Icon(Icons.add),
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => DisciplineRequestModal(
+                                        disciplineRecordId: recordId,
+                                        onSubmitted: () {
+                                          _loadRecords();
+                                        },
+                                      ),
+                                    );
+                                  },
+                                )
+                              : null,
+                          onExpansionChanged: (expanded) {
+                            setState(() {
+                              _expandedRecordId = expanded ? recordId : null;
+                            });
+                          },
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (description.isNotEmpty) ...[
+                                    Text(
+                                      'Description',
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(description),
+                                    const SizedBox(height: 16),
+                                  ],
+                                  // Demandes existantes
+                                  if (isParent && recordRequests.isNotEmpty) ...[
+                                    Text(
+                                      'Mes demandes',
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...recordRequests.map((req) {
+                                      final reqStatus = req['status'] ?? '';
+                                      final reqType = req['request_type'] ?? '';
+                                      final reqMessage = req['message'] ?? '';
+                                      final reqResponse = req['response'];
+                                      final reqRespondedBy = req['responded_by_name'];
+                                      final reqRespondedAt = req['responded_at'];
+                                      
+                                      return Card(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        color: reqStatus == 'APPROVED' 
+                                            ? Colors.green.shade50
+                                            : reqStatus == 'REJECTED'
+                                                ? Colors.red.shade50
+                                                : Colors.orange.shade50,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Chip(
+                                                    label: Text(
+                                                      reqStatus == 'PENDING' 
+                                                          ? 'En attente'
+                                                          : reqStatus == 'APPROVED'
+                                                              ? 'Approuvée'
+                                                              : 'Rejetée',
+                                                      style: const TextStyle(fontSize: 12),
+                                                    ),
+                                                    backgroundColor: reqStatus == 'APPROVED'
+                                                        ? Colors.green
+                                                        : reqStatus == 'REJECTED'
+                                                            ? Colors.red
+                                                            : Colors.orange,
+                                                    labelStyle: const TextStyle(color: Colors.white),
+                                                  ),
+                                                  Text(
+                                                    _getRequestTypeLabel(reqType),
+                                                    style: Theme.of(context).textTheme.bodySmall,
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                reqMessage,
+                                                style: Theme.of(context).textTheme.bodyMedium,
+                                              ),
+                                              if (reqResponse != null) ...[
+                                                const SizedBox(height: 12),
+                                                Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        'Réponse de l\'école:',
+                                                        style: Theme.of(context).textTheme.labelSmall,
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Text(reqResponse),
+                                                      if (reqRespondedBy != null || reqRespondedAt != null) ...[
+                                                        const SizedBox(height: 4),
+                                                        Text(
+                                                          'Par ${reqRespondedBy ?? 'N/A'} ${reqRespondedAt != null ? 'le ${DateFormat('dd/MM/yyyy').format(DateTime.parse(reqRespondedAt))}' : ''}',
+                                                          style: Theme.of(context).textTheme.labelSmall,
+                                                        ),
+                                                      ],
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ] else if (isParent && recordId != null && !hasPendingRequest) ...[
+                                    Center(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => DisciplineRequestModal(
+                                              disciplineRecordId: recordId,
+                                              onSubmitted: () {
+                                                _loadRecords();
+                                              },
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.add),
+                                        label: const Text('Créer une demande'),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
-                    },
-                  ),
-                ),
+                            },
+                          ),
+                        ),
+                      ),
+        ],
+      ),
     );
   }
 }

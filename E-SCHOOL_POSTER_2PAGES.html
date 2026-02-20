@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-School - Plateforme Scolaire Digitale</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #fff;
+        }
+
+        .page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0;
+            padding: 8mm;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .page-content {
+            background: #ffffff;
+            height: 100%;
+            border-radius: 10px;
+            padding: 5.5mm;
+            position: relative;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3.5mm;
+            padding-bottom: 3.5mm;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: -5mm -5mm 3.5mm -5mm;
+            padding: 6mm 5mm 3.5mm 5mm;
+            border-radius: 10px 10px 0 0;
+            color: white;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .header-contact {
+            margin-top: 3mm;
+            padding-top: 3mm;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 9px;
+            line-height: 1.6;
+        }
+
+        .header-contact p {
+            margin: 1mm 0;
+            color: white;
+        }
+
+        .header-contact a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        }
+
+        .logo-container {
+            margin-bottom: 4mm;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            padding: 10px;
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .logo-fallback {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: 900;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .logo:has(img[style*="display: none"]) .logo-fallback,
+        .logo:not(:has(img)) .logo-fallback {
+            display: flex;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #ffffff;
+            margin-bottom: 2mm;
+            font-weight: 900;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .header .tagline {
+            font-size: 14px;
+            color: rgba(255,255,255,0.98);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .section {
+            margin-bottom: 3.5mm;
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 3mm;
+            padding-bottom: 2mm;
+            border-bottom: 3px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .why-section {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #f0f4ff 100%);
+            padding: 3mm;
+            border-radius: 6px;
+            margin-bottom: 3mm;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .why-section ul {
+            list-style: none;
+            padding-left: 0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2mm;
+        }
+
+        .why-section li {
+            padding: 1.5mm 0 1.5mm 5.5mm;
+            position: relative;
+            font-size: 10px;
+            line-height: 1.45;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .why-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2.2mm;
+            margin-bottom: 3mm;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 3mm;
+            border-radius: 6px;
+            border-left: 3px solid;
+            border-image: linear-gradient(180deg, #667eea, #764ba2) 1;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card h4 {
+            font-size: 12.5px;
+            color: #667eea;
+            margin-bottom: 2mm;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .feature-card p {
+            font-size: 9.5px;
+            color: #475569;
+            line-height: 1.45;
+            font-weight: 400;
+        }
+
+        .roles-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.8mm;
+            margin-bottom: 3mm;
+        }
+
+        .role-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+            border: 2px solid #e0e7ff;
+            border-radius: 6px;
+            padding: 2.5mm;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .role-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .role-card h3 {
+            font-size: 12.5px;
+            color: #667eea;
+            margin-bottom: 2mm;
+            padding-bottom: 1.5mm;
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, #667eea, #764ba2) 1;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .role-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .role-card li {
+            padding: 0.8mm 0 0.8mm 3.5mm;
+            position: relative;
+            font-size: 8.5px;
+            color: #475569;
+            line-height: 1.3;
+            font-weight: 500;
+        }
+
+        .role-card li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .tech-highlights {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 50%, #f0f4ff 100%);
+            padding: 2.5mm;
+            border-radius: 6px;
+            margin-top: 2mm;
+            border-left: 3px solid #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .tech-highlights h3 {
+            font-size: 13px;
+            color: #667eea;
+            margin-bottom: 2mm;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+        }
+
+        .tech-highlights p {
+            font-size: 8.5px;
+            color: #475569;
+            margin-bottom: 1.5mm;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding-top: 2.5mm;
+            padding-bottom: 2mm;
+            border-top: 2px solid;
+            border-image: linear-gradient(90deg, transparent, #e0e7ff, transparent) 1;
+            font-size: 9px;
+            color: #64748b;
+            position: relative;
+            z-index: 10;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .footer-contact {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            padding: 2.5mm 3.5mm;
+            border-radius: 5px;
+            margin-top: 2mm;
+            font-size: 9.5px;
+            font-weight: 600;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            white-space: nowrap;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+
+        .footer-contact span {
+            color: white;
+            font-weight: 700;
+        }
+
+        .footer-contact a {
+            color: white;
+            text-decoration: underline;
+            font-weight: 700;
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            padding: 4mm;
+            border-radius: 8px;
+            margin-top: 3mm;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .contact-info::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .contact-info p {
+            margin: 1.5mm 0;
+            font-size: 10.5px;
+            color: white !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-info a {
+            color: white !important;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fef3c7 100%);
+            padding: 3mm;
+            border-radius: 6px;
+            border-left: 4px solid #f59e0b;
+            margin-bottom: 3mm;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+            position: relative;
+        }
+
+        .highlight-box::before {
+            content: '💡';
+            position: absolute;
+            top: 4mm;
+            right: 4mm;
+            font-size: 20px;
+            opacity: 0.3;
+        }
+
+        .highlight-box p {
+            font-size: 10px;
+            color: #92400e;
+            font-weight: 700;
+            line-height: 1.55;
+            margin: 0;
+            letter-spacing: 0.2px;
+        }
+
+        .page-2-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin: -5mm -5mm 3.5mm -5mm;
+            padding: 5mm 5mm 3.5mm 5mm;
+            border-radius: 10px 10px 0 0;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .page-2-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        }
+
+        .page-2-header h2 {
+            font-size: 20px;
+            font-weight: 900;
+            text-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            z-index: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2mm 4mm;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        @media print {
+            .page {
+                margin: 0;
+                padding: 0;
+                page-break-after: always;
+            }
+            
+            body {
+                background: white;
+            }
+
+            .page-content {
+                box-shadow: none;
+                display: flex !important;
+                flex-direction: column !important;
+                min-height: 100% !important;
+                height: auto !important;
+            }
+
+            .contact-info::before {
+                animation: none;
+            }
+
+            .contact-info {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .footer {
+                display: block !important;
+                visibility: visible !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                margin-top: auto !important;
+            }
+
+            .footer-contact {
+                display: flex !important;
+                visibility: visible !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                white-space: nowrap !important;
+            }
+
+            .section {
+                flex: 0 0 auto !important;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- PAGE 1 -->
+    <div class="page">
+        <div class="page-content">
+            <!-- En-tête -->
+            <div class="header">
+                <div class="logo-container">
+                    <div class="logo">
+                        <img src="frontend/src/images/logo.png" alt="E-School Logo" 
+                             onerror="this.onerror=null; this.src='../frontend/src/images/logo.png'; this.onerror=function(){this.style.display='none'; var fallback=this.parentElement.querySelector('.logo-fallback'); if(fallback) fallback.style.display='flex';}">
+                        <div class="logo-fallback">E</div>
+                    </div>
+                </div>
+                <h1>E-School</h1>
+                <p class="tagline">La Solution Complète de Gestion Scolaire Digitale</p>
+            </div>
+
+            <!-- Message d'accroche -->
+            <div class="highlight-box">
+                <p><strong>Révolutionnez la gestion de votre école</strong> avec une plateforme digitale complète qui couvre l'ensemble du cycle scolaire : de l'inscription au suivi académique, en passant par la communication et les paiements. Une solution moderne, sécurisée et spécialement conçue pour les réalités des écoles africaines.</p>
+            </div>
+
+            <!-- Pourquoi E-School -->
+            <div class="section">
+                <h2 class="section-title">✨ Pourquoi Choisir E-School ?</h2>
+                <div class="why-section">
+                    <ul>
+                        <li><strong>Solution Intégrée Complète</strong> : Tous les outils de gestion scolaire dans une seule plateforme performante et intuitive</li>
+                        <li><strong>Architecture Multi-Écoles</strong> : Système multi-tenant sécurisé avec isolation totale des données par établissement</li>
+                        <li><strong>Accessibilité Universelle</strong> : Application mobile native (Android/iOS) + Interface web responsive pour tous les acteurs</li>
+                        <li><strong>Fonctionnement Hors-Ligne</strong> : Mode offline-first avec synchronisation automatique, adapté aux zones à faible connectivité</li>
+                        <li><strong>Sécurité de Niveau Entreprise</strong> : Isolation des données, authentification JWT avancée, permissions granulaires par rôle</li>
+                        <li><strong>Communication Intégrée</strong> : Messagerie directe dans l'application et notifications in-app pour une communication fluide sans intermédiaires</li>
+                        <li><strong>Optimisé pour l'Afrique</strong> : Support Mobile Money, adaptation aux connexions limitées, contexte local intégré</li>
+                        <li><strong>Évolutif et Modulaire</strong> : Architecture moderne permettant l'ajout facile de nouvelles fonctionnalités</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Fonctionnalités Principales -->
+            <div class="section">
+                <h2 class="section-title">🚀 Fonctionnalités Principales</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <h4>📝 Inscription & Réinscription</h4>
+                        <p>Workflow d'approbation automatisé, génération de matricules uniques, gestion complète des dossiers élèves avec historique détaillé, upload sécurisé de documents administratifs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 Suivi Scolaire Complet</h4>
+                        <p>Gestion avancée des notes (contrôle continu et examens), suivi des présences/absences avec statistiques détaillées, fiches de discipline, génération automatique de bulletins.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💻 E-Learning Avancé</h4>
+                        <p>Création de cours en ligne avec contenu multimédia, vidéos intégrées, devoirs avec système de soumission et notation, quiz interactifs avec suivi des performances.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📚 Bibliothèque Numérique</h4>
+                        <p>Catalogue complet de ressources pédagogiques (gratuites et payantes), système d'achat intégré, suivi de progression de lecture, statistiques d'utilisation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💳 Gestion des Paiements</h4>
+                        <p>Configuration flexible des frais scolaires, multiples méthodes de paiement (Mobile Money, espèces, virement), plans de paiement échelonnés, génération automatique de reçus PDF.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💬 Communication Multi-Canal</h4>
+                        <p>Messagerie interne intégrée, notifications en temps réel directement dans l'application, annonces scolaires, réunions avec support visioconférence (Zoom, Teams, Meet).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>👨‍🏫 Encadrement à Domicile</h4>
+                        <p>Messagerie dédiée parent-enseignant, conseils pédagogiques personnalisés, rapports d'encadrement périodiques avec génération PDF automatique.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📈 Statistiques & Rapports</h4>
+                        <p>Tableaux de bord analytiques par rôle, rapports PDF automatiques, suivi des performances individuelles et collectives, export de données pour analyses approfondies.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Page 1 -->
+            <div class="footer">
+                <div class="footer-contact">
+                    <span>📞 CONTACTEZ-NOUS :</span>
+                    <span>📱 +243 855 261 528 / 085 561 737</span>
+                    <span>•</span>
+                    <span>✉️ <a href="mailto:alidorsabue@africaits.com">alidorsabue@africaits.com</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+        <div class="page-content">
+            <!-- En-tête Page 2 -->
+            <div class="page-2-header">
+                <h2>Fonctionnalités Détaillées par Rôle</h2>
+            </div>
+
+            <!-- Fonctionnalités par Rôle -->
+            <div class="section">
+                <div class="roles-section">
+                    <!-- Administrateur -->
+                    <div class="role-card">
+                        <h3>👨‍💼 Administrateur École</h3>
+                        <ul>
+                            <li>Gestion complète (classes, matières, sections, niveaux)</li>
+                            <li>Administration des utilisateurs (création, modification)</li>
+                            <li>Approbation inscriptions/réinscriptions avec workflow</li>
+                            <li>Gestion paiements et frais scolaires (configuration)</li>
+                            <li>Statistiques et rapports globaux en temps réel</li>
+                            <li>Configuration paramètres scolaires</li>
+                            <li>Gestion bibliothèque numérique</li>
+                            <li>Suivi anciens élèves (diplômés, promus)</li>
+                            <li>Gestion caisse et dépenses avec rapports</li>
+                        </ul>
+                    </div>
+
+                    <!-- Enseignant -->
+                    <div class="role-card">
+                        <h3>👩‍🏫 Enseignant</h3>
+                        <ul>
+                            <li>Gestion classes et élèves assignés</li>
+                            <li>Saisie notes (contrôle continu + examens)</li>
+                            <li>Gestion présences/absences avec statistiques</li>
+                            <li>Création cours en ligne (vidéos, fichiers)</li>
+                            <li>Création et correction de devoirs</li>
+                            <li>Création quiz interactifs</li>
+                            <li>Planification réunions avec parents</li>
+                            <li>Fiches discipline (comportement positif/négatif)</li>
+                            <li>Encadrement à domicile et conseils</li>
+                            <li>Génération bulletins avec calcul automatique</li>
+                        </ul>
+                    </div>
+
+                    <!-- Parent -->
+                    <div class="role-card">
+                        <h3>👨‍👩‍👧 Parent</h3>
+                        <ul>
+                            <li>Suivi enfants (notes, moyennes, présences)</li>
+                            <li>Inscription/réinscription en ligne avec documents</li>
+                            <li>Consultation bulletins scolaires en PDF</li>
+                            <li>Paiement frais scolaires en ligne</li>
+                            <li>Réunions avec enseignants (visioconférence)</li>
+                            <li>Encadrement à domicile et conseils</li>
+                            <li>Accès bibliothèque numérique</li>
+                            <li>Notifications dans l'application</li>
+                            <li>Messagerie avec l'école et enseignants</li>
+                            <li>Historique paiements et reçus</li>
+                        </ul>
+                    </div>
+
+                    <!-- Élève -->
+                    <div class="role-card">
+                        <h3>🎓 Élève</h3>
+                        <ul>
+                            <li>Tableau de bord personnalisé avec vue d'ensemble</li>
+                            <li>Consultation des cours en ligne (téléchargement offline)</li>
+                            <li>Soumission de devoirs avec upload de fichiers</li>
+                            <li>Passage de quiz et examens en ligne avec chronomètre</li>
+                            <li>Consultation des notes et bulletins en temps réel</li>
+                            <li>Suivi des présences et absences personnelles</li>
+                            <li>Accès à la bibliothèque numérique</li>
+                            <li>Mode hors-ligne pour télécharger les cours</li>
+                            <li>Notifications des nouvelles activités</li>
+                            <li>Suivi de la progression avec statistiques</li>
+                        </ul>
+                    </div>
+
+                    <!-- Comptable -->
+                    <div class="role-card">
+                        <h3>💰 Comptable</h3>
+                        <ul>
+                            <li>Tableau de bord avec vue financière globale</li>
+                            <li>Gestion des inscriptions et réinscriptions</li>
+                            <li>Suivi des paiements (toutes méthodes)</li>
+                            <li>Gestion des dépenses de l'école</li>
+                            <li>Gestion de la caisse (entrées/sorties)</li>
+                            <li>Génération de reçus et rapports financiers</li>
+                            <li>Suivi des impayés et relances</li>
+                            <li>Statistiques financières détaillées</li>
+                            <li>Export des données comptables</li>
+                        </ul>
+                    </div>
+
+                    <!-- Chargé de Discipline -->
+                    <div class="role-card">
+                        <h3>⚖️ Chargé de Discipline</h3>
+                        <ul>
+                            <li>Tableau de bord avec vue d'ensemble disciplinaire</li>
+                            <li>Gestion des fiches de discipline (positif/négatif)</li>
+                            <li>Suivi du comportement des élèves</li>
+                            <li>Planification de réunions avec parents</li>
+                            <li>Communication avec parents et enseignants</li>
+                            <li>Génération de rapports disciplinaires</li>
+                            <li>Historique complet des incidents</li>
+                            <li>Statistiques de comportement par classe</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Points Techniques -->
+            <div class="tech-highlights">
+                <h3>⚙️ Avantages Techniques & Architecture</h3>
+                <p><strong>Architecture Moderne & Performante :</strong> Backend Django REST Framework (Python), Frontend React 18 avec TypeScript, Application mobile Flutter (Android/iOS). Stack technologique éprouvée et maintenue.</p>
+                <p><strong>Multi-Plateforme & Accessible :</strong> Interface web responsive (desktop/tablette) + Application mobile native Android/iOS. Une seule application mobile unifiée pour élèves et parents avec détection automatique du rôle.</p>
+                <p><strong>Performance Optimisée :</strong> Mode hors-ligne complet, cache intelligent (Hive pour mobile), synchronisation incrémentale, compression des données pour économiser la bande passante et réduire les coûts.</p>
+                <p><strong>Sécurité de Niveau Entreprise :</strong> Isolation complète des données par école (multi-tenant), authentification JWT avec refresh tokens, permissions granulaires par rôle, validation stricte côté serveur.</p>
+                <p><strong>Intégrations Prêtes à l'Emploi :</strong> Mobile Money (M-Pesa, Orange Money, Airtel Money), Communication directe dans l'application (messagerie intégrée), Paiements en ligne via Stripe, Notifications push Firebase, Génération PDF automatique.</p>
+                <p><strong>Base de Données Robuste & Scalable :</strong> PostgreSQL pour la production, SQLite pour le développement. Architecture scalable pour supporter la croissance et des milliers d'utilisateurs simultanés.</p>
+            </div>
+
+            <!-- Pied de page -->
+            <div class="footer">
+                <p style="font-size: 9.5px; font-weight: 700; margin-bottom: 2mm;"><strong>E-School</strong> - Transformez votre école avec la technologie</p>
+                <p style="font-size: 8.5px; margin-bottom: 2mm;">Solution complète • Sécurisée • Optimisée pour l'Afrique • Prête pour la production</p>
+                <p style="margin-top: 2.5mm; font-size: 8.5px; font-style: italic;">Contactez-nous pour une démonstration personnalisée et découvrez comment E-School peut révolutionner la gestion de votre école.</p>
+                
+                <!-- Coordonnées en bas de page sur une seule ligne -->
+                <div class="footer-contact">
+                    <span>📞 CONTACTEZ-NOUS :</span>
+                    <span>📱 +243 855 261 528 / 085 561 737</span>
+                    <span>•</span>
+                    <span>✉️ <a href="mailto:alidorsabue@africaits.com">alidorsabue@africaits.com</a></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

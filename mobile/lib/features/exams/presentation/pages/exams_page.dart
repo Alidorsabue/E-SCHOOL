@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/network/api_service.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 
 class ExamsPage extends ConsumerStatefulWidget {
   const ExamsPage({super.key});
@@ -13,7 +14,9 @@ class ExamsPage extends ConsumerStatefulWidget {
 
 class _ExamsPageState extends ConsumerState<ExamsPage> {
   List<dynamic> _exams = [];
+  List<dynamic> _filteredExams = [];
   bool _isLoading = true;
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -29,7 +32,10 @@ class _ExamsPageState extends ConsumerState<ExamsPage> {
     try {
       final response = await ApiService().get('/api/elearning/quizzes/');
       setState(() {
-        _exams = response.data as List<dynamic>;
+        _exams = response.data is List<dynamic>
+            ? response.data
+            : (response.data['results'] ?? []);
+        _applyFilters();
         _isLoading = false;
       });
     } catch (e) {
@@ -39,23 +45,45 @@ class _ExamsPageState extends ConsumerState<ExamsPage> {
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filteredExams = _exams.where((exam) {
+        if (_searchQuery.isNotEmpty) {
+          final title = (exam['title'] ?? '').toString().toLowerCase();
+          return title.contains(_searchQuery.toLowerCase());
+        }
+        return true;
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mes Examens'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _exams.isEmpty
-              ? const Center(child: Text('Aucun examen disponible'))
-              : RefreshIndicator(
-                  onRefresh: _loadExams,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _exams.length,
-                    itemBuilder: (context, index) {
-                      final exam = _exams[index];
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher un examen...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredExams.isEmpty
+                    ? const Center(child: Text('Aucun examen disponible'))
+                    : RefreshIndicator(
+                        onRefresh: _loadExams,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredExams.length,
+                          itemBuilder: (context, index) {
+                            final exam = _filteredExams[index];
                       final startDate = exam['start_date'] != null
                           ? DateTime.parse(exam['start_date'])
                           : null;
@@ -108,9 +136,12 @@ class _ExamsPageState extends ConsumerState<ExamsPage> {
                           },
                         ),
                       );
-                    },
-                  ),
-                ),
+                            },
+                          ),
+                        ),
+                      ),
+        ],
+      ),
     );
   }
 }

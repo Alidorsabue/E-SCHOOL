@@ -63,3 +63,7 @@ htmlcov/
 *.apk
 *.aab
 *.ipa
+
+# Documentation Markdown (exclus du dépôt GitHub, trop encombrants)
+*.md
+!README.md

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/network/api_service.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 
 class AssignmentsPage extends ConsumerStatefulWidget {
   const AssignmentsPage({super.key});
@@ -13,7 +14,10 @@ class AssignmentsPage extends ConsumerStatefulWidget {
 
 class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
   List<dynamic> _assignments = [];
+  List<dynamic> _filteredAssignments = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedStatus;
 
   @override
   void initState() {
@@ -29,7 +33,10 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
     try {
       final response = await ApiService().get('/api/elearning/assignments/');
       setState(() {
-        _assignments = response.data as List<dynamic>;
+        _assignments = response.data is List<dynamic>
+            ? response.data
+            : (response.data['results'] ?? []);
+        _applyFilters();
         _isLoading = false;
       });
     } catch (e) {
@@ -37,6 +44,27 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
         _isLoading = false;
       });
     }
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _filteredAssignments = _assignments.where((assignment) {
+        // Recherche
+        if (_searchQuery.isNotEmpty) {
+          final title = (assignment['title'] ?? '').toString().toLowerCase();
+          if (!title.contains(_searchQuery.toLowerCase())) {
+            return false;
+          }
+        }
+        // Filtre statut
+        if (_selectedStatus != null) {
+          if ((assignment['status'] ?? 'pending') != _selectedStatus) {
+            return false;
+          }
+        }
+        return true;
+      }).toList();
+    });
   }
 
   Color _getStatusColor(String? status) {
@@ -58,17 +86,43 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
       appBar: AppBar(
         title: const Text('Mes Devoirs'),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _assignments.isEmpty
-              ? const Center(child: Text('Aucun devoir disponible'))
-              : RefreshIndicator(
-                  onRefresh: _loadAssignments,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _assignments.length,
-                    itemBuilder: (context, index) {
-                      final assignment = _assignments[index];
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher un devoir...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+            filters: [
+              FilterOption(
+                key: 'status',
+                label: 'Statut',
+                values: [
+                  FilterValue(value: 'pending', label: 'En attente'),
+                  FilterValue(value: 'submitted', label: 'Soumis'),
+                  FilterValue(value: 'overdue', label: 'En retard'),
+                ],
+                selectedValue: _selectedStatus,
+              ),
+            ],
+            onFiltersChanged: (filters) {
+              setState(() => _selectedStatus = filters['status']);
+              _applyFilters();
+            },
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredAssignments.isEmpty
+                    ? const Center(child: Text('Aucun devoir disponible'))
+                    : RefreshIndicator(
+                        onRefresh: _loadAssignments,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _filteredAssignments.length,
+                          itemBuilder: (context, index) {
+                            final assignment = _filteredAssignments[index];
                       final dueDate = assignment['due_date'] != null
                           ? DateTime.parse(assignment['due_date'])
                           : null;
@@ -133,9 +187,12 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                           },
                         ),
                       );
-                    },
-                  ),
-                ),
+                            },
+                          ),
+                        ),
+                      ),
+        ],
+      ),
     );
   }
 }

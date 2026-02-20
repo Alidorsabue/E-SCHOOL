@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/network/api_service.dart';
 import '../../../../core/services/sync_service.dart';
 import '../../../../core/database/database_service.dart';
+import '../widgets/assignment_submission_modal.dart';
 
 class AssignmentDetailPage extends ConsumerStatefulWidget {
   final int assignmentId;
@@ -18,6 +19,8 @@ class AssignmentDetailPage extends ConsumerStatefulWidget {
 
 class _AssignmentDetailPageState extends ConsumerState<AssignmentDetailPage> {
   Map<String, dynamic>? _assignment;
+  List<dynamic> _questions = [];
+  Map<String, dynamic>? _submission;
   bool _isLoading = true;
   bool _isSubmitting = false;
 
@@ -36,6 +39,41 @@ class _AssignmentDetailPageState extends ConsumerState<AssignmentDetailPage> {
       final response = await ApiService().get('/api/elearning/assignments/${widget.assignmentId}/');
       setState(() {
         _assignment = response.data as Map<String, dynamic>;
+      });
+      
+      // Charger les questions si disponibles
+      try {
+        final questionsResponse = await ApiService().get('/api/elearning/assignments/${widget.assignmentId}/questions/');
+        setState(() {
+          _questions = questionsResponse.data is List 
+              ? questionsResponse.data 
+              : (questionsResponse.data['results'] ?? []);
+        });
+      } catch (e) {
+        // Pas de questions ou erreur, continuer
+        setState(() {
+          _questions = [];
+        });
+      }
+      
+      // Charger la soumission de l'élève pour afficher le score
+      try {
+        final submissionsResponse = await ApiService().get('/api/elearning/submissions/', queryParameters: {
+          'assignment': widget.assignmentId,
+        });
+        final submissions = submissionsResponse.data is List 
+            ? submissionsResponse.data 
+            : (submissionsResponse.data['results'] ?? []);
+        if (submissions.isNotEmpty) {
+          setState(() {
+            _submission = submissions.first as Map<String, dynamic>;
+          });
+        }
+      } catch (e) {
+        // Pas de soumission ou erreur, continuer
+      }
+      
+      setState(() {
         _isLoading = false;
       });
     } catch (e) {
@@ -45,61 +83,17 @@ class _AssignmentDetailPageState extends ConsumerState<AssignmentDetailPage> {
     }
   }
 
-  Future<void> _submitAssignment() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
+  void _showSubmissionModal() {
+    showDialog(
+      context: context,
+      builder: (context) => AssignmentSubmissionModal(
+        assignmentId: widget.assignmentId,
+        questions: _questions,
+        onSubmitted: () {
+          _loadAssignment();
+        },
+      ),
     );
-
-    if (result == null) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      // Enregistrer dans la queue de synchronisation
-      await SyncService.addToSyncQueue(
-        'assignments',
-        widget.assignmentId,
-        'submit',
-        {
-          'id': widget.assignmentId,
-          'file_path': result.files.single.path,
-        },
-      );
-
-      // Mettre à jour localement
-      final db = DatabaseService.database;
-      await db.update(
-        'assignments',
-        {
-          'status': 'submitted',
-          'submitted_at': DateTime.now().millisecondsSinceEpoch,
-        },
-        where: 'assignment_id = ?',
-        whereArgs: [widget.assignmentId],
-      );
-
-      // Essayer de synchroniser immédiatement
-      await SyncService.syncPendingData();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Devoir soumis avec succès')),
-        );
-        context.pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
-        );
-      }
-    } finally {
-      setState(() {
-        _isSubmitting = false;
-      });
-    }
   }
 
   @override
@@ -177,18 +171,83 @@ class _AssignmentDetailPageState extends ConsumerState<AssignmentDetailPage> {
                 ),
               ),
             ),
+            // Questions du devoir
+            if (_questions.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Questions:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ..._questions.asMap().entries.map((entry) {
+                final index = entry.key;
+                final question = entry.value;
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text('${index + 1}'),
+                    ),
+                    title: Text(question['question_text'] ?? 'Question'),
+                    subtitle: Text('Type: ${question['question_type'] ?? 'N/A'}'),
+                  ),
+                );
+              }),
+            ],
+            // Afficher le score si disponible
+            if (_submission != null && _submission!['score'] != null) ...[
+              const SizedBox(height: 24),
+              Card(
+                color: Colors.green.shade50,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.green),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Devoir soumis',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Score:'),
+                          Text(
+                            '${_submission!['score']} / ${_submission!['total_points'] ?? _assignment!['total_points'] ?? 20}',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                          ),
+                        ],
+                      ),
+                      if (_submission!['best_score'] != null && _submission!['best_score'] != _submission!['score'])
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Meilleure tentative: ${_submission!['best_score']} / ${_submission!['total_points'] ?? _assignment!['total_points'] ?? 20}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
-            if (canSubmit)
+            if (canSubmit && (_submission == null || _assignment!['allow_multiple_attempts'] == true))
               ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submitAssignment,
-                icon: _isSubmitting
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.upload),
-                label: Text(_isSubmitting ? 'Soumission...' : 'Soumettre le devoir'),
+                onPressed: _isSubmitting ? null : _showSubmissionModal,
+                icon: const Icon(Icons.upload),
+                label: Text(_submission != null ? 'Resoumettre le devoir' : 'Soumettre le devoir'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 48),
                 ),

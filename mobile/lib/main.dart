@@ -17,12 +17,21 @@ import 'core/config/app_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Configuration système immédiate (léger)
+  // Orientations : portrait + paysage pour téléphone et tablette (iOS/Android)
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
   ]);
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
 
   // Afficher l'app tout de suite ; les init lourdes se font après le 1er frame
   runApp(

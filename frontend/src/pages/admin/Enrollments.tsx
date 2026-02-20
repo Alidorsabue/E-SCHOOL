@@ -33,6 +33,11 @@ const enrollmentSchema = z.object({
 
 type EnrollmentForm = z.infer<typeof enrollmentSchema>
 
+/** Nom complet élève / demande : first_name + last_name + middle_name */
+function enrollmentFullName(app: { first_name?: string; last_name?: string; middle_name?: string | null }) {
+  return [app.first_name, app.last_name, app.middle_name].filter(Boolean).join(' ')
+}
+
 export default function AdminEnrollments() {
   const { user } = useAuthStore()
   const canApproveReject = user?.role !== 'ACCOUNTANT'
@@ -928,7 +933,7 @@ export default function AdminEnrollments() {
                   >
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {app.first_name} {app.last_name}
+                        {enrollmentFullName(app)}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">{app.email || app.phone}</div>
                     </div>
@@ -1404,7 +1409,7 @@ export default function AdminEnrollments() {
                         <p className="text-sm text-gray-500 mb-2">Photo</p>
                         <img
                           src={app.photo}
-                          alt={`${app.first_name} ${app.last_name}`}
+                          alt={enrollmentFullName(app)}
                           className="w-32 h-32 object-cover rounded-lg border border-gray-300"
                         />
                       </div>
@@ -1412,7 +1417,7 @@ export default function AdminEnrollments() {
                     <div>
                       <p className="text-sm text-gray-500">Nom complet</p>
                       <p className="text-sm font-medium text-gray-900">
-                        {app.first_name} {app.middle_name ? `${app.middle_name} ` : ''}{app.last_name}
+                        {enrollmentFullName(app)}
                       </p>
                     </div>
                     {app.middle_name && (

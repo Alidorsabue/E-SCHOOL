@@ -100,7 +100,7 @@ export default function ProfileModal({ user, onClose }: ProfileModalProps) {
             {user.profile_picture ? (
               <img
                 src={user.profile_picture}
-                alt={`${user.first_name} ${user.last_name}`}
+                alt={userFullName(user)}
                 className="w-20 h-20 rounded-full object-cover"
               />
             ) : (

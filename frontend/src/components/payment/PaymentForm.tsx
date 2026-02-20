@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
+import { userFullName } from '@/utils/name'
 
 type PaymentFormMode = 'parent' | 'accountant'
 
-type ChildOption = { identity: { id: number; user?: { first_name?: string; last_name?: string }; student_id?: string } }
-type StudentOption = { id: number; user?: { first_name?: string; last_name?: string }; student_id?: string; parent?: number }
-type ParentOption = { id: number; first_name?: string; last_name?: string; email?: string }
+type ChildOption = { identity: { id: number; user?: { first_name?: string; last_name?: string; middle_name?: string | null }; student_id?: string } }
+type StudentOption = { id: number; user?: { first_name?: string; last_name?: string; middle_name?: string | null }; student_id?: string; parent?: number }
+type ParentOption = { id: number; first_name?: string; last_name?: string; middle_name?: string | null; email?: string }
 type FeeTypeOption = { id: number; name: string; amount: string | number; currency: string }
 
 interface PaymentFormProps {
@@ -108,7 +109,7 @@ export default function PaymentForm({
               <option value="">Sélectionner un parent</option>
               {parents.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.first_name} {p.last_name} {p.email ? `(${p.email})` : ''}
+                  {userFullName(p)} {p.email ? `(${p.email})` : ''}
                 </option>
               ))}
             </select>
@@ -126,13 +127,13 @@ export default function PaymentForm({
             {mode === 'parent' &&
               children.map((child: ChildOption) => (
                 <option key={child.identity.id} value={child.identity.id}>
-                  {child.identity.user?.first_name} {child.identity.user?.last_name} - {child.identity.student_id}
+                  {userFullName(child.identity.user)} - {child.identity.student_id}
                 </option>
               ))}
             {mode === 'accountant' &&
               (studentOptions as StudentOption[]).map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.user?.first_name} {s.user?.last_name} - {s.student_id}
+                  {userFullName(s.user)} - {s.student_id}
                 </option>
               ))}
           </select>

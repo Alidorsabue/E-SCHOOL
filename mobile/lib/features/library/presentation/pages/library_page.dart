@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/network/api_service.dart';
+import '../../../../core/widgets/search_filter_bar.dart';
 
 class LibraryPage extends ConsumerStatefulWidget {
   const LibraryPage({super.key});
@@ -13,7 +14,10 @@ class LibraryPage extends ConsumerStatefulWidget {
 
 class _LibraryPageState extends ConsumerState<LibraryPage> {
   List<dynamic> _books = [];
+  List<dynamic> _filteredBooks = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  String? _selectedCategory;
 
   @override
   void initState() {
@@ -29,7 +33,10 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     try {
       final response = await ApiService().get('/api/library/books/');
       setState(() {
-        _books = response.data as List<dynamic>;
+        _books = response.data is List<dynamic>
+            ? response.data
+            : (response.data['results'] ?? []);
+        _applyFilters();
         _isLoading = false;
       });
     } catch (e) {
@@ -39,37 +46,79 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     }
   }
 
+  void _applyFilters() {
+    setState(() {
+      _filteredBooks = _books.where((book) {
+        // Recherche
+        if (_searchQuery.isNotEmpty) {
+          final title = (book['title'] ?? '').toString().toLowerCase();
+          final author = (book['author'] ?? '').toString().toLowerCase();
+          if (!title.contains(_searchQuery.toLowerCase()) &&
+              !author.contains(_searchQuery.toLowerCase())) {
+            return false;
+          }
+        }
+        // Filtre catégorie
+        if (_selectedCategory != null) {
+          if (book['category']?['id']?.toString() != _selectedCategory) {
+            return false;
+          }
+        }
+        return true;
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bibliothèque'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // TODO: Recherche
+      ),
+      body: Column(
+        children: [
+          SearchFilterBar(
+            hintText: 'Rechercher un livre...',
+            onSearchChanged: (value) {
+              setState(() => _searchQuery = value);
+              _applyFilters();
+            },
+            filters: [
+              FilterOption(
+                key: 'category',
+                label: 'Catégorie',
+                values: [
+                  FilterValue(value: 'all', label: 'Toutes'),
+                  // TODO: Charger les catégories depuis l'API
+                ],
+                selectedValue: _selectedCategory,
+              ),
+            ],
+            onFiltersChanged: (filters) {
+              setState(() {
+                _selectedCategory = filters['category'] == 'all' ? null : filters['category'];
+              });
+              _applyFilters();
             },
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _books.isEmpty
-              ? const Center(child: Text('Aucun livre disponible'))
-              : RefreshIndicator(
-                  onRefresh: _loadBooks,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 0.7,
-                    ),
-                    itemCount: _books.length,
-                    itemBuilder: (context, index) {
-                      final book = _books[index];
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _filteredBooks.isEmpty
+                    ? const Center(child: Text('Aucun livre disponible'))
+                    : RefreshIndicator(
+                        onRefresh: _loadBooks,
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(16),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 0.7,
+                          ),
+                          itemCount: _filteredBooks.length,
+                          itemBuilder: (context, index) {
+                            final book = _filteredBooks[index];
                       return Card(
                         child: InkWell(
                           onTap: () {
@@ -120,9 +169,12 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                           ),
                         ),
                       );
-                    },
-                  ),
-                ),
+                            },
+                          ),
+                        ),
+                      ),
+        ],
+      ),
     );
   }
 }

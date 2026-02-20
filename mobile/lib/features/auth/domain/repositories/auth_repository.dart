@@ -99,7 +99,8 @@ class AuthRepository {
   }
 
   Future<UserModel> getCurrentUser() async {
-    final response = await _apiService.get<Map<String, dynamic>>(
+    // Ne pas utiliser get<Map<String, dynamic>> : Dio renvoie _Map<dynamic, dynamic>, le cast échoue.
+    final response = await _apiService.get(
       '/api/auth/users/me/',
       useCache: false,
     );

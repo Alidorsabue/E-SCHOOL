@@ -1,110 +1,124 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../config/app_config.dart';
+import 'package:flutter/foundation.dart';
+import '../preferences/preferences_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
-  
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  
-  static Future<void> init() async {
-    final instance = NotificationService();
-    await instance._initialize();
-  }
-  
-  Future<void> _initialize() async {
-    // Demander la permission
-    final settings = await _firebaseMessaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
+
+  final FlutterLocalNotificationsPlugin _notifications = FlutterLocalNotificationsPlugin();
+  bool _initialized = false;
+
+  Future<void> initialize() async {
+    if (_initialized) return;
+
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
     );
-    
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // Initialiser les notifications locales
-      const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const iosSettings = DarwinInitializationSettings();
-      const initSettings = InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      );
-      
-      await _localNotifications.initialize(
-        initSettings,
-        onDidReceiveNotificationResponse: _onNotificationTapped,
-      );
-      
-      // Créer le canal de notification Android
-      const androidChannel = AndroidNotificationChannel(
-        AppConfig.notificationChannelId,
-        AppConfig.notificationChannelName,
-        importance: Importance.high,
-      );
-      
-      await _localNotifications
+
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _notifications.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _onNotificationTapped,
+    );
+
+    // Demander les permissions
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await _notifications
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(androidChannel);
-      
-      // Écouter les messages en foreground
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-      
-      // Écouter les messages en background
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleBackgroundMessage);
-      
-      // Obtenir le token FCM
-      final token = await _firebaseMessaging.getToken();
-      if (token != null) {
-        // Envoyer le token au backend
-        await _sendTokenToBackend(token);
-      }
-      
-      // Écouter les changements de token
-      _firebaseMessaging.onTokenRefresh.listen(_sendTokenToBackend);
+          ?.requestNotificationsPermission();
     }
+
+    _initialized = true;
   }
-  
+
   void _onNotificationTapped(NotificationResponse response) {
-    // Gérer le tap sur la notification
-    // Navigation vers l'écran approprié
+    // TODO: Gérer la navigation selon le type de notification
+    debugPrint('Notification tapped: ${response.payload}');
   }
-  
-  Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    // Afficher une notification locale quand l'app est en foreground
-    final notification = message.notification;
-    if (notification != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            AppConfig.notificationChannelId,
-            AppConfig.notificationChannelName,
-            importance: Importance.high,
-            priority: Priority.high,
-          ),
-          iOS: DarwinNotificationDetails(),
-        ),
-      );
-    }
+
+  Future<void> showNotification({
+    required int id,
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    final enabled = await PreferencesService.getNotificationsEnabled();
+    if (!enabled) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'eschool_channel',
+      'E-School Notifications',
+      channelDescription: 'Notifications de l\'application E-School',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.show(id, title, body, details, payload: payload);
   }
-  
-  void _handleBackgroundMessage(RemoteMessage message) {
-    // Gérer les messages en background
-    // Navigation vers l'écran approprié
+
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+    String? payload,
+  }) async {
+    final enabled = await PreferencesService.getNotificationsEnabled();
+    if (!enabled) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'eschool_channel',
+      'E-School Notifications',
+      channelDescription: 'Notifications de l\'application E-School',
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _notifications.schedule(
+      id,
+      title,
+      body,
+      scheduledDate,
+      details,
+      payload: payload,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+    );
   }
-  
-  Future<void> _sendTokenToBackend(String token) async {
-    // TODO: Envoyer le token au backend via API
-    // await ApiService().post('/notifications/register-device/', data: {'token': token});
+
+  DateTime _convertToTZDateTime(DateTime dateTime) {
+    // Conversion simple pour l'instant
+    return dateTime;
   }
-  
-  // Méthode statique pour le handler de background (doit être top-level)
-  @pragma('vm:entry-point')
-  static Future<void> backgroundMessageHandler(RemoteMessage message) async {
-    // Traitement des messages en background
+
+  Future<void> cancelNotification(int id) async {
+    await _notifications.cancel(id);
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _notifications.cancelAll();
   }
 }
